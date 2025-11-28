@@ -24,16 +24,22 @@ class Game {
             dialogueText: document.getElementById('dialogue-text'),
             choicesArea: document.getElementById('choices-area'),
             healthDisplay: document.getElementById('health-display'),
-            inventoryDisplay: document.getElementById('inventory-display')
+            inventoryDisplay: document.getElementById('inventory-display'),
+            settingsModal: document.getElementById('settings-modal'),
+            bgmSlider: document.getElementById('bgm-volume'),
+            sfxSlider: document.getElementById('sfx-volume')
         };
 
         // Audio context (placeholder for user to add files)
         this.audio = {
             bgm: new Audio(),
             sfx: new Audio(),
-            manager: new AudioManager()
+            manager: new AudioManager(),
+            bgmVolume: 0.5,
+            sfxVolume: 0.5
         };
         this.audio.bgm.loop = true;
+        this.bgmUrl = "https://cdn.pixabay.com/download/audio/2022/03/24/audio_07967d7055.mp3?filename=sad-piano-111611.mp3"; 
         
         this.particles = new ParticleSystem();
 
@@ -41,49 +47,140 @@ class Game {
         this.init();
     }
 
-    playBGM(src) {
-        // Try to play procedural ambience if no file is provided or as fallback
-        if (src === 'theme.mp3') {
-             // User interaction is required to start AudioContext
-             document.addEventListener('click', () => {
-                 this.audio.manager.startAmbience();
-             }, { once: true });
+    playBGM() {
+        if (!this.audio.bgm.src || this.audio.bgm.src !== this.bgmUrl) {
+            this.audio.bgm.src = this.bgmUrl;
         }
-        // Uncomment and ensure file exists in assets/audio/
-        // this.audio.bgm.src = `assets/audio/${src}`;
-        // this.audio.bgm.play().catch(e => console.log("Audio play failed (user interaction required or file missing):", e));
+        this.audio.bgm.volume = this.audio.bgmVolume;
+        this.audio.bgm.play().catch(e => console.log("Interaction needed for audio"));
     }
 
-    playSFX(src) {
-        // Uncomment and ensure file exists in assets/audio/
-        // const sfx = new Audio(`assets/audio/${src}`);
-        // sfx.play().catch(e => {});
+    playClickSFX() {
+        const ctx = this.audio.manager.context || new (window.AudioContext || window.webkitAudioContext)();
+        if (ctx.state === 'suspended') ctx.resume();
+        
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.1);
+        
+        gain.gain.setValueAtTime(this.audio.sfxVolume * 0.5, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+        
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.start();
+        osc.stop(ctx.currentTime + 0.1);
     }
 
     init() {
         this.setupEventListeners();
         this.renderIdentityList();
         this.showScreen('title');
+        
+        const savedVol = localStorage.getItem('nw_volume');
+        if (savedVol) {
+            const vol = JSON.parse(savedVol);
+            this.audio.bgmVolume = vol.bgm;
+            this.audio.sfxVolume = vol.sfx;
+            if(this.elements.bgmSlider) this.elements.bgmSlider.value = vol.bgm;
+            if(this.elements.sfxSlider) this.elements.sfxSlider.value = vol.sfx;
+        }
     }
 
     setupEventListeners() {
         document.getElementById('start-btn').addEventListener('click', () => {
+            this.playClickSFX();
+            this.playBGM();
             this.showScreen('identity');
-            this.playSFX('click.mp3');
-            this.playBGM('theme.mp3'); // Example BGM
         });
+
+        // Settings & Save/Load
+        const settingsBtnTitle = document.getElementById('settings-btn-title');
+        if(settingsBtnTitle) settingsBtnTitle.addEventListener('click', () => this.toggleSettings(true));
+        
+        const settingsBtnGame = document.getElementById('settings-btn-game');
+        if(settingsBtnGame) settingsBtnGame.addEventListener('click', () => this.toggleSettings(true));
+        
+        const closeSettings = document.getElementById('close-settings');
+        if(closeSettings) closeSettings.addEventListener('click', () => this.toggleSettings(false));
+        
+        const saveBtn = document.getElementById('save-btn');
+        if(saveBtn) saveBtn.addEventListener('click', () => {
+            this.playClickSFX();
+            this.saveGame();
+        });
+        
+        const loadBtnTitle = document.getElementById('load-btn-title');
+        if(loadBtnTitle) loadBtnTitle.addEventListener('click', () => {
+            this.playClickSFX();
+            this.loadGame();
+        });
+
+        if(this.elements.bgmSlider) {
+            this.elements.bgmSlider.addEventListener('input', (e) => {
+                this.audio.bgmVolume = e.target.value;
+                this.audio.bgm.volume = this.audio.bgmVolume;
+                localStorage.setItem('nw_volume', JSON.stringify({bgm: this.audio.bgmVolume, sfx: this.audio.sfxVolume}));
+            });
+        }
+
+        if(this.elements.sfxSlider) {
+            this.elements.sfxSlider.addEventListener('input', (e) => {
+                this.audio.sfxVolume = e.target.value;
+                localStorage.setItem('nw_volume', JSON.stringify({bgm: this.audio.bgmVolume, sfx: this.audio.sfxVolume}));
+            });
+        }
         
         this.elements.confirmBtn.addEventListener('click', () => {
             if (this.state.currentIdentity) {
-                this.playSFX('confirm.mp3');
+                this.playClickSFX();
                 this.startGame();
             }
         });
 
         this.elements.reselectBtn.addEventListener('click', () => {
-            this.playSFX('click.mp3');
+            this.playClickSFX();
             this.resetIdentitySelection()
         });
+    }
+
+    toggleSettings(show) {
+        if(this.elements.settingsModal) {
+            this.elements.settingsModal.style.display = show ? 'flex' : 'none';
+            this.playClickSFX();
+        }
+    }
+
+    saveGame() {
+        const saveData = {
+            state: this.state,
+            timestamp: new Date().getTime()
+        };
+        localStorage.setItem('nw_save', JSON.stringify(saveData));
+        alert('游戏已保存');
+    }
+
+    loadGame() {
+        const saveStr = localStorage.getItem('nw_save');
+        if (!saveStr) {
+            alert('没有找到存档');
+            return;
+        }
+        const saveData = JSON.parse(saveStr);
+        this.state = saveData.state;
+        
+        this.showScreen('game');
+        this.updateStatus();
+        this.playBGM();
+        
+        const identityData = dialogues[this.state.currentIdentity];
+        if (identityData && identityData[this.state.currentNode]) {
+            this.renderNode(identityData[this.state.currentNode]);
+        }
     }
 
     renderIdentityList() {
@@ -193,13 +290,13 @@ class Game {
             const btn = document.createElement('button');
             btn.textContent = choice.text;
             btn.classList.add('choice-btn', 'fade-in');
-            btn.addEventListener('click', () => this.makeChoice(choice));
+            btn.addEventListener('click', () => this.handleChoice(choice));
             this.elements.choicesArea.appendChild(btn);
         });
     }
 
-    makeChoice(choice) {
-        // 应用效果
+    handleChoice(choice) {
+        this.playClickSFX(); // Add sound to choices
         if (choice.effect) {
             if (choice.effect.addItem) {
                 this.addItem(choice.effect.addItem);

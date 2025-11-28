@@ -14,6 +14,23 @@
     <h1>无归之城</h1>
     <h2>No Way Out</h2>
     <button id="start-btn">开始游戏</button>
+    <div style="margin-top: 20px;">
+      <button id="load-btn-title" class="secondary-btn">读取存档</button>
+      <button id="settings-btn-title" class="secondary-btn">设置</button>
+    </div>
+  </div>
+
+  <div id="settings-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:100; justify-content:center; align-items:center;">
+    <div style="background:#222; padding:20px; border:1px solid #555; width:300px; text-align:center;">
+        <h3>设置</h3>
+        <div style="margin:10px 0;">
+            <label>音乐音量: <input type="range" id="bgm-volume" min="0" max="1" step="0.1" value="0.5"></label>
+        </div>
+        <div style="margin:10px 0;">
+            <label>音效音量: <input type="range" id="sfx-volume" min="0" max="1" step="0.1" value="0.5"></label>
+        </div>
+        <button id="close-settings">关闭</button>
+    </div>
   </div>
 
   <div id="identity-screen" style="display:none;">
@@ -31,6 +48,10 @@
     <div id="status-bar">
         <div id="health-display">生命：100</div>
         <div id="inventory">物品：<span id="inventory-display"></span></div>
+        <div style="margin-left: auto;">
+            <button id="save-btn" style="font-size: 0.8em; padding: 2px 5px;">保存</button>
+            <button id="settings-btn-game" style="font-size: 0.8em; padding: 2px 5px;">设置</button>
+        </div>
     </div>
     <div id="dialogue-area">
         <div id="dialogue-text"></div>

@@ -24,7 +24,7 @@ export const dialogues = {
     relative_food: { text: "你找到一些干粮和一壶水。要不要再搜搜？", choices: [ {text:"继续搜寻", next:"relative_more"}, {text:"拿走现有食物", next:"relative_leave", effect: {addItem: "干粮", health: 10}} ] },
     relative_more: { text: "你翻开柜子，发现一张藏有暗门的地板。", choices: [ {text:"打开暗门", next:"relative_secret"}, {text:"不碰它", next:"relative_leave"} ] },
     relative_secret: { text: "暗门下面有些旧钱币和一把生锈的小刀。要拿走吗？", choices: [ {text:"拿走", next:"relative_leave", effect: {addItem: "小刀"}}, {text:"不拿", next:"relative_leave"} ] },
-    relative_leave: { text: "你背上物资，天色渐暗。", choices: [ {text:"在亲戚家休息一晚", next:"relative_rest", effect: {health: 20}}, {text:"直接离开", next:"street1"} ] },
+    relative_leave: { text: "你背上物资，天色渐暗。", choices: [ {text:"在亲戚家休息一晚", next:"relative_rest", effect: {health: 20}}, {text:"直接离开", next:"street1"}, {text:"寻找长期避难所", next:"survival_start"} ] },
     relative_rest: { text: "你睡得很不安稳，半夜听到敲门声。", choices: [ {text:"开门看看", next:"relative_open"}, {text:"继续装睡", next:"relative_hide"} ] },
     relative_open: { text: "门外是一名陌生难民，他请求留宿。", choices: [ {text:"允许他进来", next:"relative_guest"}, {text:"拒绝", next:"relative_hide"} ] },
     relative_guest: { text: "他和你分享了外面的情报：东门晚上有漏洞。", choices: [ {text:"前往东门", next:"east1"}, {text:"等待天亮", next:"relative_escape"} ] },
@@ -63,6 +63,118 @@ export const dialogues = {
     help_child: { text: "小孩告诉你教堂安全，还给了你一块干面包。", choices: [ {text:"去教堂", next:"church"}, {text:"继续前行", next:"street2", effect: {addItem: "干面包"}} ] },
     leave_child: { text: "你甩开小孩，继续走。前面有士兵拦路。", choices: [ {text:"绕路", next:"street2"}, {text:"硬闯", next:"ending_caught1"} ] },
     street2: { text: "前面分三条路：东门、西门、河边。", choices: [ {text:"去东门", next:"east1"}, {text:"去西门", next:"west1"}, {text:"去河边", next:"river1"} ] },
+
+    // 生存循环模式 (增加长度)
+    survival_start: { text: "你暂时找到了一个安全的废弃小屋。接下来的日子，你必须想办法活下去。", choices: [ {text:"开始第一天", next:"day1_morning"} ] },
+    
+    day1_morning: { text: "第一天清晨。寒风刺骨，你感到饥饿。", choices: [ {text:"外出寻找食物", next:"day1_search_food"}, {text:"在屋内休息", next:"day1_rest"} ] },
+    day1_search_food: { text: "你在附近的垃圾堆里翻找。", choices: [ {text:"找到半个馒头", next:"day1_noon", effect: {addItem: "馒头", health: 5}}, {text:"一无所获", next:"day1_noon", effect: {health: -5}} ] },
+    day1_rest: { text: "你缩在角落里减少消耗。", choices: [ {text:"等待中午", next:"day1_noon", effect: {health: 5}} ] },
+    
+    day1_noon: { text: "中午时分，远处传来枪声。", choices: [ {text:"查看情况", next:"day1_event"}, {text:"保持安静", next:"day1_night"} ] },
+    day1_event: { text: "你看到一队难民被押送。", choices: [ {text:"试图解救", next:"ending_caught1"}, {text:"忍痛无视", next:"day1_night", effect: {health: -5}} ] },
+    
+    day1_night: { text: "夜幕降临，气温骤降。", choices: [ {text:"生火取暖", next:"day1_fire"}, {text:"裹紧衣服睡觉", next:"day2_morning"} ] },
+    day1_fire: { text: "火光温暖了你，但也可能引来敌人。", choices: [ {text:"熄灭火堆", next:"day2_morning"}, {text:"继续取暖", next:"ending_caught1"} ] },
+
+    day2_morning: { text: "第二天清晨。你还活着，但身体更加虚弱。", choices: [ {text:"去河边取水", next:"day2_water"}, {text:"去教堂求助", next:"church"} ] },
+    day2_water: { text: "河水冰冷刺骨。", choices: [ {text:"喝生水", next:"day2_sick", effect: {health: -10}}, {text:"带水回去烧开", next:"day2_noon", effect: {addItem: "水"}} ] },
+    day2_sick: { text: "你喝坏了肚子，身体极度虚弱。", choices: [ {text:"休息", next:"day2_noon"} ] },
+    day2_noon: { text: "中午，一名伤兵爬到了你门口。", choices: [ {text:"救助他", next:"day2_help_soldier"}, {text:"赶走他", next:"day2_alone"} ] },
+    day2_help_soldier: { text: "你用仅有的物资救了他，他给了你一把手枪后死去了。", choices: [ {text:"拿走手枪", next:"day3_morning", effect: {addItem: "手枪"}} ] },
+    day2_alone: { text: "你独自一人，内心备受煎熬。", choices: [ {text:"熬过这一天", next:"day3_morning"} ] },
+
+    day3_morning: { text: "第三天。全城大搜捕开始了。", choices: [ {text:"躲进地窖", next:"day3_hide"}, {text:"尝试突围", next:"street2"} ] },
+    day3_hide: { text: "地窖里阴暗潮湿，你听到头顶的脚步声。", choices: [ {text:"屏住呼吸", next:"day3_safe"}, {text:"咳嗽", next:"ending_caught1"} ] },
+    day3_safe: { text: "脚步声远去。你又活过了一劫。", choices: [ {text:"继续苟活", next:"day4_morning"} ] },
+
+    day4_morning: { text: "第四天。连日的饥饿让你头晕眼花。", choices: [ {text:"搜寻隔壁废墟", next:"day4_search"}, {text:"喝水充饥", next:"day4_water", effect: {health: -2}} ] },
+    day4_search: { text: "你在废墟中找到半瓶发霉的酒。", choices: [ {text:"喝掉暖身", next:"day4_drunk", effect: {health: 5, sanity: -5}}, {text:"留着消毒", next:"day4_noon", effect: {addItem: "酒精"}} ] },
+    day4_water: { text: "水只能暂时缓解胃痛。", choices: [ {text:"休息", next:"day4_noon"} ] },
+    day4_drunk: { text: "酒精让你暂时忘记了恐惧，但也让你反应迟钝。", choices: [ {text:"摇晃着睡去", next:"day4_noon"} ] },
+    day4_noon: { text: "中午，外面下起了冻雨。", choices: [ {text:"接雨水", next:"day4_rain", effect: {addItem: "雨水"}}, {text:"堵住窗户缝隙", next:"day4_fix"} ] },
+    day4_rain: { text: "你接了一些雨水，虽然浑浊但很珍贵。", choices: [ {text:"等待雨停", next:"day4_night"} ] },
+    day4_fix: { text: "你用破布堵住了漏风的窗户，屋内稍微暖和了一点。", choices: [ {text:"休息", next:"day4_night", effect: {health: 2}} ] },
+    day4_night: { text: "雨夜格外寂静，只有远处的狗叫声。", choices: [ {text:"睡觉", next:"day5_morning"} ] },
+
+    day5_morning: { text: "第五天。你发现存粮已经耗尽。", choices: [ {text:"冒险去远处的商店", next:"day5_shop"}, {text:"在附近挖草根", next:"day5_grass"} ] },
+    day5_shop: { text: "你来到一家被洗劫过的商店，货架空空如也。", choices: [ {text:"撬开柜台", next:"day5_counter"}, {text:"去仓库", next:"day5_warehouse"} ] },
+    day5_counter: { text: "柜台下有一盒火柴。", choices: [ {text:"拿走", next:"day5_noon", effect: {addItem: "火柴"}} ] },
+    day5_warehouse: { text: "仓库里有一只死老鼠。", choices: [ {text:"带回去吃", next:"day5_eat_rat", effect: {addItem: "死老鼠"}}, {text:"恶心离开", next:"day5_noon"} ] },
+    day5_grass: { text: "你在墙角挖到一些植物根茎。", choices: [ {text:"生吃", next:"day5_sick", effect: {health: -5}}, {text:"煮熟吃", next:"day5_noon", effect: {health: 2}} ] },
+    day5_eat_rat: { text: "你烤了老鼠肉，虽然难吃但补充了体力。", choices: [ {text:"休息", next:"day5_noon", effect: {health: 10}} ] },
+    day5_sick: { text: "根茎有毒，你上吐下泻。", choices: [ {text:"忍耐", next:"day5_noon", effect: {health: -10}} ] },
+    day5_noon: { text: "中午，你听到有人在敲你的门。", choices: [ {text:"不开门", next:"day5_ignore"}, {text:"询问是谁", next:"day5_ask"} ] },
+    day5_ignore: { text: "敲门声持续了一会儿消失了。", choices: [ {text:"松了一口气", next:"day5_night"} ] },
+    day5_ask: { text: "门外是一个乞讨的老人。", choices: [ {text:"分他一点食物", next:"day5_help_old", condition: {hasItem: "馒头"}}, {text:"赶走他", next:"day5_night"} ] },
+    day5_help_old: { text: "老人感激地给了你一块玉佩。", choices: [ {text:"收下", next:"day5_night", effect: {addItem: "玉佩", removeItem: "馒头"}} ] },
+    day5_night: { text: "这一天又过去了。", choices: [ {text:"睡觉", next:"day6_morning"} ] },
+
+    day6_morning: { text: "第六天。你感到身体越来越沉重。", choices: [ {text:"坚持锻炼", next:"day6_exercise"}, {text:"躺着不动", next:"day6_rest"} ] },
+    day6_exercise: { text: "你做了一些简单的活动，身体暖和了些。", choices: [ {text:"休息", next:"day6_noon", effect: {health: 2}} ] },
+    day6_rest: { text: "你躺了一上午，感觉四肢僵硬。", choices: [ {text:"起来活动", next:"day6_noon"} ] },
+    day6_noon: { text: "中午，日军开始挨家挨户搜查。", choices: [ {text:"躲进衣柜", next:"day6_closet"}, {text:"躲到床底", next:"day6_bed"} ] },
+    day6_closet: { text: "士兵踢开了门，在屋里翻找。", choices: [ {text:"屏息凝神", next:"day6_safe"} ] },
+    day6_bed: { text: "士兵的靴子就在你眼前晃动。", choices: [ {text:"闭上眼睛", next:"day6_safe"} ] },
+    day6_safe: { text: "士兵骂骂咧咧地离开了。", choices: [ {text:"出来", next:"day6_night"} ] },
+    day6_night: { text: "经历了白天的惊吓，你难以入眠。", choices: [ {text:"强迫自己睡", next:"day7_morning"} ] },
+
+    day7_morning: { text: "第七天。你开始出现幻觉。", choices: [ {text:"自言自语", next:"day7_talk"}, {text:"写遗书", next:"day7_write"} ] },
+    day7_talk: { text: "你对着空气说话，仿佛家人就在身边。", choices: [ {text:"哭泣", next:"day7_noon", effect: {sanity: -5}} ] },
+    day7_write: { text: "你写下了对家人的思念。", choices: [ {text:"收好遗书", next:"day7_noon", effect: {addItem: "遗书"}} ] },
+    day7_noon: { text: "中午，你听到外面有广播声。", choices: [ {text:"出去听", next:"day7_listen"}, {text:"不理会", next:"day7_ignore"} ] },
+    day7_listen: { text: "广播里播放着虚假的‘亲善’宣传。", choices: [ {text:"愤怒地回屋", next:"day7_night"}, {text:"感到绝望", next:"day7_night", effect: {sanity: -5}} ] },
+    day7_ignore: { text: "你不想听那些谎言。", choices: [ {text:"休息", next:"day7_night"} ] },
+    day7_night: { text: "你梦见自己回到了和平年代。", choices: [ {text:"醒来", next:"day8_morning"} ] },
+
+    day8_morning: { text: "第八天。你发烧了。", choices: [ {text:"寻找药物", next:"day8_search_med"}, {text:"物理降温", next:"day8_cool"} ] },
+    day8_search_med: { text: "你拖着病体翻找柜子，找到一片退烧药。", choices: [ {text:"吃药", next:"day8_noon", effect: {health: 10}} ] },
+    day8_cool: { text: "你用湿布敷在额头上。", choices: [ {text:"休息", next:"day8_noon", effect: {health: 5}} ] },
+    day8_noon: { text: "高烧让你昏昏沉沉。", choices: [ {text:"继续睡", next:"day8_night"} ] },
+    day8_night: { text: "你感到生命在流逝。", choices: [ {text:"坚持住", next:"day9_morning"} ] },
+
+    day9_morning: { text: "第九天。烧退了，但你虚弱得站不起来。", choices: [ {text:"爬行寻找水", next:"day9_water"}, {text:"躺着等死", next:"ending_dead1"} ] },
+    day9_water: { text: "你喝了最后一点水。", choices: [ {text:"喘息", next:"day9_noon"} ] },
+    day9_noon: { text: "你听到外面有枪决的声音。", choices: [ {text:"麻木", next:"day9_night"} ] },
+    day9_night: { text: "这是最后一个夜晚吗？", choices: [ {text:"闭眼", next:"day10_morning"} ] },
+
+    day10_morning: { text: "第十天。门被撞开了。", choices: [ {text:"看一眼", next:"day10_end"} ] },
+    day10_end: { text: "几名日本士兵冲了进来。", choices: [ {text:"拼死一搏", next:"day10_fight", condition: {hasItem: "手枪"}}, {text:"接受命运", next:"ending_caught1"} ] },
+    day10_fight: { text: "你开枪打死了一名士兵，趁乱跳窗逃跑。", choices: [ {text:"逃进下水道", next:"day11_sewer"} ] },
+
+    // 市民-下水道生存分支 (Day 11-15)
+    day11_sewer: { text: "第十一天。下水道里恶臭难闻，但至少没有士兵。", choices: [ {text:"向深处走", next:"day11_deep"}, {text:"寻找出口", next:"day11_exit_search"} ] },
+    day11_deep: { text: "深处有一些微弱的光亮。", choices: [ {text:"靠近", next:"day11_camp"} ] },
+    day11_exit_search: { text: "你找不到出口，反而迷路了。", choices: [ {text:"返回", next:"day11_deep"} ] },
+    day11_camp: { text: "这里聚集着一群幸存者，他们建立了地下营地。", choices: [ {text:"请求加入", next:"day11_join"}, {text:"抢夺物资", next:"day11_rob"} ] },
+    day11_join: { text: "首领打量了你一番，同意你留下，但要上交武器。", choices: [ {text:"交出手枪", next:"day12_morning", effect: {removeItem: "手枪"}}, {text:"拒绝", next:"day11_leave"} ] },
+    day11_rob: { text: "你试图抢夺，被众人制服。", choices: [ {text:"被扔进污水沟", next:"ending_sewer_death"} ] },
+    day11_leave: { text: "你独自离开了营地。", choices: [ {text:"继续流浪", next:"ending_sewer_death"} ] },
+
+    day12_morning: { text: "第十二天。你在营地里负责清理垃圾。", choices: [ {text:"认真工作", next:"day12_work"}, {text:"偷懒", next:"day12_lazy"} ] },
+    day12_work: { text: "首领给了你一块发霉的面包。", choices: [ {text:"吃掉", next:"day12_night", effect: {health: 5}} ] },
+    day12_lazy: { text: "你被监工打了一顿。", choices: [ {text:"忍气吞声", next:"day12_night", effect: {health: -5}} ] },
+    day12_night: { text: "地下营地的空气很差，很多人在咳嗽。", choices: [ {text:"睡觉", next:"day13_morning"} ] },
+
+    day13_morning: { text: "第十三天。营地里爆发了瘟疫。", choices: [ {text:"照顾病人", next:"day13_help"}, {text:"躲得远远的", next:"day13_hide"} ] },
+    day13_help: { text: "你被传染了。", choices: [ {text:"休息", next:"day13_night", effect: {health: -10}} ] },
+    day13_hide: { text: "你躲在角落里，看着人们一个个倒下。", choices: [ {text:"恐惧", next:"day13_night", effect: {sanity: -10}} ] },
+    day13_night: { text: "死亡的气息弥漫。", choices: [ {text:"坚持", next:"day14_morning"} ] },
+
+    day14_morning: { text: "第十四天。首领死了，营地陷入混乱。", choices: [ {text:"争夺领导权", next:"day14_leader"}, {text:"趁乱逃跑", next:"day14_escape"} ] },
+    day14_leader: { text: "你被暴徒杀死。", choices: [ {text:"结束", next:"ending_sewer_riot"} ] },
+    day14_escape: { text: "你爬出了下水道，回到了地面。", choices: [ {text:"呼吸新鲜空气", next:"day15_morning"} ] },
+
+    day15_morning: { text: "第十五天。地面上已经是废墟一片。", choices: [ {text:"前往江边", next:"day15_river"}, {text:"前往山林", next:"day15_mountain"} ] },
+    day15_river: { text: "江边堆满了尸体。", choices: [ {text:"寻找浮木", next:"ending_river_final"} ] },
+    day15_mountain: { text: "你走进山林，最终迷失方向。", choices: [ {text:"结束", next:"ending_mountain_death"} ] },
+
+    ending_sewer_death: { text: "系统：你在下水道中腐烂（市民结局11）", choices: [] },
+    ending_sewer_riot: { text: "系统：你死于幸存者内乱（市民结局12）", choices: [] },
+    ending_river_final: { text: "系统：你抱住一根浮木漂流，最终体力不支沉入江底（市民结局13）", choices: [] },
+    ending_mountain_death: { text: "系统：你在山林中冻饿而死（市民结局14）", choices: [] },
+
+    survival_end: { text: "你在废墟中坚持了数日，最终因饥寒交迫倒在雪地里。", choices: [ {text:"结束", next:"ending_dead1"} ] },
 
     // 东门与西门
     east1: { text: "东门被封锁。守卫要通行证。", choices: [ {text:"尝试贿赂", next:"bribe1", condition: {hasItem: "钱币"}}, {text:"寻找别路", next:"street2"} ] },
@@ -179,16 +291,57 @@ export const dialogues = {
     student_trouble: { text: "士兵怀疑你们，要求搜身。", choices: [ {text:"配合搜查", next:"student_check_end"}, {text:"试图逃跑", next:"ending_student_caught"} ] },
     student_check_end: { text: "你被搜出学生证，士兵不再为难。", choices: [ {text:"前往教堂", next:"student_church"} ] },
     student_church: { text: "教堂内有修女接待你们，她需要人手帮忙分发食物。", choices: [ {text:"留下帮忙", next:"student_help"}, {text:"询问逃生路线", next:"student_info"} ] },
-    student_help: { text: "你们帮忙搬运食物，赢得修女信任。", choices: [ {text:"跟随修女去安全区", next:"ending_student_safe"}, {text:"再探索其他路线", next:"student_river"} ] },
+    student_help: { text: "你们帮忙搬运食物，赢得修女信任。修女建议你们暂时留在教堂帮忙。", choices: [ {text:"留在教堂建立防线", next:"student_camp_start"}, {text:"跟随修女去安全区", next:"ending_student_safe"}, {text:"再探索其他路线", next:"student_river"} ] },
     student_info: { text: "修女告诉你河边可能有船只。", choices: [ {text:"前往河边", next:"student_river"} ] },
     student_river: { text: "河边有几条小船，但有巡逻士兵。", choices: [ {text:"等夜里行动", next:"student_river_night"}, {text:"尝试强行划船", next:"ending_student_danger"} ] },
-    student_river_night: { text: "夜幕降临，你悄悄靠近小船。", choices: [ {text:"划船离开", next:"ending_student_river_escape"}, {text:"改变主意", next:"student_church"} ] },
+    student_river_night: { text: "夜幕降临，你悄悄靠近小船。但你发现船底有破洞。", choices: [ {text:"尝试修补", next:"student_wild_start"}, {text:"划船离开", next:"ending_student_river_escape"}, {text:"改变主意", next:"student_church"} ] },
     student_cart: { text: "你躲在马车里，听到士兵的脚步声逼近。", choices: [ {text:"屏住呼吸", next:"student_safe_cart"}, {text:"跳下逃跑", next:"ending_student_caught"} ] },
     student_safe_cart: { text: "士兵走过，你成功逃过一劫。", choices: [ {text:"前往河边", next:"student_river"} ] },
     student_alone: { text: "你决定独自行动，路过学校图书馆时，看到有书籍散落。", choices: [ {text:"拿一本日记", next:"student_journal", effect: {addItem: "日记"}}, {text:"不理会", next:"student_alone2"} ] },
     student_journal: { text: "日记里记载了秘密通道的线索。", choices: [ {text:"按线索行动", next:"student_secret_path"}, {text:"尝试去河边", next:"student_river"} ] },
     student_alone2: { text: "你走出学校，考虑应该去哪里。", choices: [ {text:"去教堂", next:"student_church"}, {text:"想办法出城", next:"ending_student_river_escape"},{text:"去河边", next:"student_river"} ] },
     student_secret_path: { text: "你沿着线索找到一条隐蔽的小巷。", choices: [ {text:"继续前进", next:"ending_student_secret_escape"}, {text:"犹豫返回", next:"student_church"} ] },
+
+    // 学生-教堂防线分支 (Day 1-5)
+    student_camp_start: { text: "你决定留在教堂，组织难民建立防线。第一天，你需要分配任务。", choices: [ {text:"加固大门", next:"camp_day1_gate"}, {text:"清点物资", next:"camp_day1_food"} ] },
+    camp_day1_gate: { text: "你带领几个年轻人搬来桌椅堵住大门。", choices: [ {text:"休息", next:"camp_day1_night", effect: {health: -2}} ] },
+    camp_day1_food: { text: "物资比想象中少，只能维持三天。", choices: [ {text:"实行配给制", next:"camp_day1_night"}, {text:"隐瞒实情", next:"camp_day1_night"} ] },
+    camp_day1_night: { text: "夜晚，教堂外传来惨叫声。", choices: [ {text:"无视", next:"camp_day2_morning"}, {text:"查看", next:"camp_day1_event"} ] },
+    camp_day1_event: { text: "一名受伤的士兵倒在门口。", choices: [ {text:"救进来", next:"camp_day2_morning", effect: {addItem: "步枪"}}, {text:"不开门", next:"camp_day2_morning"} ] },
+
+    camp_day2_morning: { text: "第二天。有人提议主动出击寻找补给。", choices: [ {text:"同意出击", next:"camp_day2_raid"}, {text:"坚守不出", next:"camp_day2_defend"} ] },
+    camp_day2_raid: { text: "你们突袭了附近的哨所，抢到一些弹药，但牺牲了一名同学。", choices: [ {text:"撤回", next:"camp_day2_night", effect: {sanity: -10, addItem: "弹药"}} ] },
+    camp_day2_defend: { text: "你们加固了窗户。大家情绪低落。", choices: [ {text:"鼓励大家", next:"camp_day2_night", effect: {sanity: 5}} ] },
+    camp_day2_night: { text: "今晚格外安静。", choices: [ {text:"轮流守夜", next:"camp_day3_morning"} ] },
+
+    camp_day3_morning: { text: "第三天。日军发现了教堂，开始试探性进攻。", choices: [ {text:"还击", next:"camp_day3_fight", condition: {hasItem: "步枪"}}, {text:"死守", next:"camp_day3_hold"} ] },
+    camp_day3_fight: { text: "你用步枪击退了先头部队。", choices: [ {text:"欢呼", next:"camp_day3_night"} ] },
+    camp_day3_hold: { text: "大门快被撞开了。", choices: [ {text:"顶住", next:"camp_day3_night", effect: {health: -10}} ] },
+    camp_day3_night: { text: "大家都受了伤，弹药也快尽了。", choices: [ {text:"写遗书", next:"camp_day4_morning"} ] },
+
+    camp_day4_morning: { text: "第四天。日军架起了机枪。", choices: [ {text:"从后门突围", next:"camp_day4_escape"}, {text:"决一死战", next:"ending_student_hero"} ] },
+    camp_day4_escape: { text: "你们冲出后门，大部分人倒在了血泊中。", choices: [ {text:"继续跑", next:"ending_student_caught"} ] },
+
+    // 学生-野外生存分支 (Day 1-5)
+    student_wild_start: { text: "你修好了船，划到了对岸的芦苇荡里。这里暂时安全。", choices: [ {text:"搭建庇护所", next:"wild_day1_build"}, {text:"寻找食物", next:"wild_day1_food"} ] },
+    wild_day1_build: { text: "你用芦苇搭了个窝棚。", choices: [ {text:"休息", next:"wild_day1_night"} ] },
+    wild_day1_food: { text: "你抓到几只螃蟹。", choices: [ {text:"生吃", next:"wild_day1_night", effect: {health: -5}}, {text:"烤熟", next:"wild_day1_night"} ] },
+    wild_day1_night: { text: "河边的蚊虫很多。", choices: [ {text:"忍受", next:"wild_day2_morning"} ] },
+
+    wild_day2_morning: { text: "第二天。你看到河面上有巡逻艇。", choices: [ {text:"躲进深处", next:"wild_day2_hide"}, {text:"观察规律", next:"wild_day2_watch"} ] },
+    wild_day2_hide: { text: "你一整天不敢动弹。", choices: [ {text:"睡觉", next:"wild_day2_night"} ] },
+    wild_day2_watch: { text: "你发现他们每小时巡逻一次。", choices: [ {text:"记下", next:"wild_day2_night"} ] },
+    wild_day2_night: { text: "你发烧了。", choices: [ {text:"喝河水", next:"wild_day3_morning", effect: {health: -5}} ] },
+
+    wild_day3_morning: { text: "第三天。你听到有人在芦苇荡里走动。", choices: [ {text:"拿起身边的木棍", next:"wild_day3_encounter"}, {text:"逃跑", next:"ending_student_river_escape"} ] },
+    wild_day3_encounter: { text: "是一个逃兵。", choices: [ {text:"攻击他", next:"wild_day3_kill"}, {text:"交流", next:"wild_day3_talk"} ] },
+    wild_day3_kill: { text: "你杀了他，抢走了他的干粮。", choices: [ {text:"吃掉", next:"wild_day3_night", effect: {sanity: -20, health: 10}} ] },
+    wild_day3_talk: { text: "他也是学生，被抓壮丁逃出来的。", choices: [ {text:"结伴", next:"wild_day3_night"} ] },
+    wild_day3_night: { text: "多了一个人，多了一份照应。", choices: [ {text:"轮流睡", next:"wild_day4_morning"} ] },
+
+    wild_day4_morning: { text: "第四天。日军开始放火烧芦苇荡。", choices: [ {text:"跳河", next:"ending_student_river_escape"}, {text:"冲出去", next:"ending_student_caught"} ] },
+
+    ending_student_hero: { text: "系统：你和同学们战至最后一刻，全员殉国（学生结局6）", choices: [] },
 
     ending_student_safe: { text: "系统：你留在教堂，最终被日军坑杀（学生结局1）", choices: [] },
     ending_student_caught: { text: "系统：你被士兵开枪射杀（学生结局2）", choices: [] },
@@ -204,8 +357,38 @@ export const dialogues = {
     teacher_rescue: { text: "你找到两名学生，他们哭着请求你带他们离开。", choices: [ {text:"带上学生", next:"teacher_with_students"}, {text:"拒绝", next:"teacher_collect"} ] },
     teacher_with_students: { text: "你带着两名学生，准备寻找安全的路线。", choices: [ {text:"去教堂", next:"teacher_church_start"}, {text:"去河边", next:"teacher_river"} ] },
 
-    teacher_collect: { text: "你在办公室找到一些粉笔和几本书。书中夹着一张城门守卫的排班表。", choices: [ {text:"利用排班表找路线", next:"teacher_gate_plan", effect: {addItem: "排班表"}}, {text:"前往教堂", next:"teacher_church_start"} ] },
+    teacher_collect: { text: "你在办公室找到一些粉笔和几本书。书中夹着一张城门守卫的排班表。", choices: [ {text:"利用排班表找路线", next:"teacher_gate_plan", effect: {addItem: "排班表"}}, {text:"前往教堂", next:"teacher_church_start"}, {text:"留在学校建立避难所", next:"teacher_school_start"} ] },
     teacher_gate_plan: { text: "排班表显示西门夜间守卫较少。", choices: [ {text:"准备去西门", next:"teacher_west"}, {text:"改去教堂", next:"teacher_church_start"} ] },
+
+    // 教师-学校避难所分支 (Day 1-5)
+    teacher_school_start: { text: "你决定留在学校，利用坚固的校舍保护幸存的学生。第一天，你需要清理场地。", choices: [ {text:"清理地下室", next:"school_day1_basement"}, {text:"封锁校门", next:"school_day1_gate"} ] },
+    school_day1_basement: { text: "地下室虽然阴暗，但很隐蔽。", choices: [ {text:"布置床铺", next:"school_day1_night"} ] },
+    school_day1_gate: { text: "你搬来桌椅堵住校门，但这只能阻挡一时。", choices: [ {text:"休息", next:"school_day1_night"} ] },
+    school_day1_night: { text: "夜晚，几个学生因为害怕而哭泣。", choices: [ {text:"讲故事安慰", next:"school_day2_morning", effect: {sanity: 5}}, {text:"严厉制止", next:"school_day2_morning", effect: {sanity: -5}} ] },
+
+    school_day2_morning: { text: "第二天。食物短缺。", choices: [ {text:"去食堂寻找", next:"school_day2_canteen"}, {text:"去教工宿舍", next:"school_day2_dorm"} ] },
+    school_day2_canteen: { text: "食堂里只剩下一些发霉的米。", choices: [ {text:"煮粥", next:"school_day2_noon", effect: {addItem: "米粥"}}, {text:"放弃", next:"school_day2_noon"} ] },
+    school_day2_dorm: { text: "宿舍里找到一些饼干。", choices: [ {text:"分给学生", next:"school_day2_noon", effect: {sanity: 5}}, {text:"自己留着", next:"school_day2_noon", effect: {health: 5}} ] },
+    school_day2_noon: { text: "中午，有难民敲门求助。", choices: [ {text:"接纳", next:"school_day2_accept"}, {text:"拒绝", next:"school_day2_reject"} ] },
+    school_day2_accept: { text: "难民带来了外界的消息，但也消耗了更多食物。", choices: [ {text:"询问消息", next:"school_day2_night"} ] },
+    school_day2_reject: { text: "难民绝望地离开了。", choices: [ {text:"愧疚", next:"school_day2_night", effect: {sanity: -5}} ] },
+    school_day2_night: { text: "你听到远处有日军的巡逻车声。", choices: [ {text:"熄灯", next:"school_day3_morning"} ] },
+
+    school_day3_morning: { text: "第三天。一名学生生病了。", choices: [ {text:"去医务室找药", next:"school_day3_med"}, {text:"物理降温", next:"school_day3_cool"} ] },
+    school_day3_med: { text: "医务室在另一栋楼，需要穿过操场。", choices: [ {text:"冒险前往", next:"school_day3_run"}, {text:"放弃", next:"school_day3_cool"} ] },
+    school_day3_run: { text: "你在操场上被狙击手发现。", choices: [ {text:"S形跑位", next:"school_day3_safe"}, {text:"趴下", next:"ending_teacher_sniper"} ] },
+    school_day3_safe: { text: "你奇迹般地拿到了药并跑了回来。", choices: [ {text:"喂药", next:"school_day3_night"} ] },
+    school_day3_cool: { text: "学生的病情加重了。", choices: [ {text:"祈祷", next:"school_day3_night"} ] },
+    school_day3_night: { text: "学生在高烧中去世了。", choices: [ {text:"掩埋", next:"school_day4_morning", effect: {sanity: -20}} ] },
+
+    school_day4_morning: { text: "第四天。日军冲进了学校。", choices: [ {text:"带领学生躲藏", next:"school_day4_hide"}, {text:"挺身而出", next:"ending_teacher_hero"} ] },
+    school_day4_hide: { text: "你们躲在地下室，听着上面的脚步声。", choices: [ {text:"捂住学生的嘴", next:"school_day4_silence"} ] },
+    school_day4_silence: { text: "脚步声渐渐远去。", choices: [ {text:"松手", next:"school_day5_morning"} ] },
+
+    school_day5_morning: { text: "第五天。学校已经不安全了。", choices: [ {text:"突围去教堂", next:"teacher_church_start"}, {text:"分散逃跑", next:"ending_teacher_west_escape"} ] },
+
+    ending_teacher_sniper: { text: "系统：你被狙击手击中头部（教师结局5）", choices: [] },
+    ending_teacher_hero: { text: "系统：你为了保护学生，被日军刺刀刺死（教师结局6）", choices: [] },
 
     teacher_church_start: { text: "教堂内有修女接待你，她需要人帮忙照顾伤员。", choices: [ {text:"留下帮忙", next:"teacher_help"}, {text:"询问逃生路线", next:"teacher_church_info"} ] },
     teacher_help: { text: "你忙了一整天，修女对你表示感谢。", choices: [ {text:"跟随修女去安全区", next:"ending_teacher_safe"}, {text:"转去找其他出路", next:"teacher_river"} ] },
