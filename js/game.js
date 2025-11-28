@@ -39,7 +39,7 @@ class Game {
             sfxVolume: 0.5
         };
         this.audio.bgm.loop = true;
-        this.bgmUrl = "https://cdn.pixabay.com/download/audio/2022/03/24/audio_07967d7055.mp3?filename=sad-piano-111611.mp3"; 
+        this.bgmUrl = "assets/audio/BGM.mp3"; 
         
         this.particles = new ParticleSystem();
 
@@ -48,16 +48,48 @@ class Game {
     }
 
     playBGM() {
-        if (!this.audio.bgm.src || this.audio.bgm.src !== this.bgmUrl) {
+        // 确保音量是数字且在有效范围内
+        let vol = parseFloat(this.audio.bgmVolume);
+        if (isNaN(vol)) vol = 0.5;
+        this.audio.bgm.volume = Math.max(0, Math.min(1, vol));
+
+        // 检查路径是否正确设置
+        if (!this.audio.bgm.src || !this.audio.bgm.src.includes("assets/audio/BGM.mp3")) {
             this.audio.bgm.src = this.bgmUrl;
+            this.audio.bgm.load(); // 强制重新加载
         }
-        this.audio.bgm.volume = this.audio.bgmVolume;
-        this.audio.bgm.play().catch(e => console.log("Interaction needed for audio"));
+
+        // 尝试播放，并捕获错误
+        const playPromise = this.audio.bgm.play();
+        
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                // 播放成功
+                console.log("BGM playing successfully");
+            }).catch(error => {
+                console.warn("BGM play failed:", error);
+                // 如果是因为没有用户交互导致的失败（NotAllowedError），
+                // 我们不需要做太多处理，因为下次点击会再次尝试。
+                // 但如果是文件找不到（404），可能需要提示。
+                if (error.name === 'NotSupportedError' || error.message.includes('404')) {
+                    console.error("Audio file not found or format not supported.");
+                }
+            });
+        }
+    }
+
+    ensureAudioContext() {
+        if (!this.audio.manager.context) {
+            this.audio.manager.init();
+        }
+        if (this.audio.manager.context.state === 'suspended') {
+            this.audio.manager.context.resume();
+        }
+        return this.audio.manager.context;
     }
 
     playClickSFX() {
-        const ctx = this.audio.manager.context || new (window.AudioContext || window.webkitAudioContext)();
-        if (ctx.state === 'suspended') ctx.resume();
+        const ctx = this.ensureAudioContext();
         
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -76,6 +108,27 @@ class Game {
         osc.stop(ctx.currentTime + 0.1);
     }
 
+    playTypingSFX() {
+        // Very short, high pitched click for typing
+        const ctx = this.ensureAudioContext();
+        
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        osc.type = 'triangle'; // Sharper sound
+        osc.frequency.setValueAtTime(1200, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.03);
+        
+        gain.gain.setValueAtTime(this.audio.sfxVolume * 0.1, ctx.currentTime); // Lower volume
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.03);
+        
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.start();
+        osc.stop(ctx.currentTime + 0.03);
+    }
+
     init() {
         this.setupEventListeners();
         this.renderIdentityList();
@@ -92,6 +145,21 @@ class Game {
     }
 
     setupEventListeners() {
+        // 全局点击事件，用于尽早激活 AudioContext，减少音效延迟
+        const unlockAudio = () => {
+            const ctx = this.ensureAudioContext();
+            if (ctx.state === 'suspended') {
+                ctx.resume().then(() => {
+                    console.log("AudioContext resumed successfully");
+                    // 移除监听器，避免重复调用
+                    document.removeEventListener('click', unlockAudio);
+                    document.removeEventListener('touchstart', unlockAudio);
+                });
+            }
+        };
+        document.addEventListener('click', unlockAudio);
+        document.addEventListener('touchstart', unlockAudio);
+
         document.getElementById('start-btn').addEventListener('click', () => {
             this.playClickSFX();
             this.playBGM();
@@ -257,6 +325,8 @@ class Game {
         const type = () => {
             if (i < text.length) {
                 element.textContent += text.charAt(i);
+                // Play sound every other character to avoid too much noise, or every character if slow enough
+                if (i % 2 === 0) this.playTypingSFX(); 
                 i++;
                 this.typewriterTimeout = setTimeout(type, 30); // 打字速度
             } else {

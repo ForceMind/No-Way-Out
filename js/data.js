@@ -426,7 +426,40 @@ export const dialogues = {
     doctor_plan: { text: "你决定利用这些药品换取安全。", choices: [ {text:"去教堂", next:"doctor_church"}, {text:"去西门试试贿赂", next:"doctor_west"} ] },
 
     doctor_church: { text: "教堂内有大量伤员，修女请求你帮忙救治。", choices: [ {text:"留下帮忙", next:"doctor_help"}, {text:"不想留下", next:"doctor_river"} ] },
-    doctor_help: { text: "你为伤员包扎，赢得大家信任。", choices: [ {text:"跟随修女前往安全区", next:"ending_doctor_safe"}, {text:"寻找别的出路", next:"doctor_river"} ] },
+    doctor_help: { text: "你为伤员包扎，赢得大家信任。修女希望你能主持这里的临时医疗点。", choices: [ {text:"建立战地医院", next:"doctor_hospital_start"}, {text:"跟随修女去安全区", next:"ending_doctor_safe"}, {text:"寻找别的出路", next:"doctor_river"} ] },
+
+    // 医生-战地医院分支 (Day 1-5)
+    doctor_hospital_start: { text: "你决定留在教堂建立战地医院。第一天，伤员不断涌入。", choices: [ {text:"进行检伤分类", next:"doc_day1_triage"}, {text:"先救治重伤员", next:"doc_day1_heavy"} ] },
+    doc_day1_triage: { text: "你将伤员分为轻重缓急，效率大大提高。", choices: [ {text:"休息", next:"doc_day1_night", effect: {sanity: 5}} ] },
+    doc_day1_heavy: { text: "你耗尽精力救治重伤员，但轻伤员因感染恶化。", choices: [ {text:"自责", next:"doc_day1_night", effect: {sanity: -5}} ] },
+    doc_day1_night: { text: "深夜，一名日军军官受重伤被抬到门口。", choices: [ {text:"救治他", next:"doc_day1_save_enemy"}, {text:"拒绝救治", next:"doc_day1_kill_enemy"} ] },
+    doc_day1_save_enemy: { text: "医者仁心，你救了他。他醒后留下了一把手术刀作为谢礼离开。", choices: [ {text:"收下", next:"doc_day2_morning", effect: {addItem: "手术刀"}} ] },
+    doc_day1_kill_enemy: { text: "你看着他失血过多而死。", choices: [ {text:"处理尸体", next:"doc_day2_morning", effect: {sanity: -5}} ] },
+
+    doc_day2_morning: { text: "第二天。药品告急。", choices: [ {text:"去被炸毁的药店寻找", next:"doc_day2_search"}, {text:"尝试用草药替代", next:"doc_day2_herb"} ] },
+    doc_day2_search: { text: "你在废墟中找到一些止痛药，但被流弹擦伤。", choices: [ {text:"包扎自己", next:"doc_day2_noon", effect: {health: -10, addItem: "止痛药"}} ] },
+    doc_day2_herb: { text: "你在教堂后院找到一些止血草。", choices: [ {text:"制作草药", next:"doc_day2_noon", effect: {addItem: "草药"}} ] },
+    doc_day2_noon: { text: "一名孕妇即将临盆。", choices: [ {text:"接生", next:"doc_day2_birth"}, {text:"由于没有设备放弃", next:"doc_day2_fail"} ] },
+    doc_day2_birth: { text: "在简陋的环境下，新生命诞生了。", choices: [ {text:"感到希望", next:"doc_day2_night", effect: {sanity: 20}} ] },
+    doc_day2_fail: { text: "孕妇难产而死。", choices: [ {text:"绝望", next:"doc_day2_night", effect: {sanity: -20}} ] },
+    doc_day2_night: { text: "你累得在手术台上睡着了。", choices: [ {text:"睡觉", next:"doc_day3_morning"} ] },
+
+    doc_day3_morning: { text: "第三天。伤口感染开始在伤员中蔓延。", choices: [ {text:"隔离感染者", next:"doc_day3_iso"}, {text:"截肢保命", next:"doc_day3_cut"} ] },
+    doc_day3_iso: { text: "家属反对隔离，引发了骚乱。", choices: [ {text:"强行隔离", next:"doc_day3_riot"}, {text:"妥协", next:"doc_day3_plague"} ] },
+    doc_day3_cut: { text: "你不得不进行多台截肢手术。", choices: [ {text:"麻木", next:"doc_day3_night", effect: {sanity: -10}} ] },
+    doc_day3_riot: { text: "骚乱中你被打伤。", choices: [ {text:"忍痛工作", next:"doc_day3_night", effect: {health: -10}} ] },
+    doc_day3_plague: { text: "感染失控，更多人死去了。", choices: [ {text:"无力回天", next:"doc_day3_night"} ] },
+    doc_day3_night: { text: "你听到教堂外有挖掘的声音。", choices: [ {text:"查看", next:"doc_day3_peek"}, {text:"无视", next:"doc_day4_morning"} ] },
+    doc_day3_peek: { text: "日军正在挖掘战壕，似乎准备长期围困。", choices: [ {text:"回屋", next:"doc_day4_morning"} ] },
+
+    doc_day4_morning: { text: "第四天。食物和水都断绝了。", choices: [ {text:"杀马充饥", next:"doc_day4_horse"}, {text:"喝圣水", next:"doc_day4_water"} ] },
+    doc_day4_horse: { text: "那是运送伤员的马。", choices: [ {text:"为了生存", next:"doc_day4_noon", effect: {health: 10}} ] },
+    doc_day4_water: { text: "圣水缸里也快干了。", choices: [ {text:"祈祷", next:"doc_day4_noon"} ] },
+    doc_day4_noon: { text: "日军冲进了教堂。", choices: [ {text:"站出来保护伤员", next:"ending_doctor_hero"}, {text:"混入伤员中", next:"doc_day4_hide"} ] },
+    doc_day4_hide: { text: "日军开始屠杀伤员。", choices: [ {text:"闭上眼", next:"ending_doctor_massacre"} ] },
+
+    ending_doctor_hero: { text: "系统：你身穿白大褂挡在伤员面前，被日军刺刀刺穿（医生结局5）", choices: [] },
+    ending_doctor_massacre: { text: "系统：你和所有伤员一起被机枪扫射而死（医生结局6）", choices: [] },
 
     doctor_west: { text: "西门守卫森严，一名士兵发现了你。", choices: [ {text:"用药品贿赂", next:"doctor_bribe", condition: {hasItem: "药品"}}, {text:"假装路过", next:"ending_doctor_caught"} ] },
     doctor_bribe: { text: "你递出药品，士兵收下后放行。", choices: [ {text:"离开", next:"ending_doctor_west_escape"} ] },
@@ -443,12 +476,45 @@ export const dialogues = {
 商人: {
     start: { text: "你是一名商人，战争让你的商铺变得破败。你需要决定是保住财富还是活命。", choices: [ {text:"收集剩余货物", next:"merchant_collect"}, {text:"带上金银逃跑", next:"merchant_escape_plan"}, {text:"去教堂避难", next:"merchant_church"} ] },
 
-    merchant_collect: { text: "你翻找商铺，发现一些布匹和罐头。", choices: [ {text:"带上布匹", next:"merchant_market", effect: {addItem: "布匹"}}, {text:"带上罐头", next:"merchant_market", effect: {addItem: "罐头"}} ] },
+    merchant_collect: { text: "你翻找商铺，发现一些布匹和罐头。你必须做出选择，背包空间有限。", choices: [ {text:"带上布匹(高价值)", next:"merchant_market", effect: {addItem: "布匹"}}, {text:"带上罐头(生存)", next:"merchant_market", effect: {addItem: "罐头"}}, {text:"带上藏在暗格的金条", next:"merchant_market", effect: {addItem: "金条"}} ] },
     merchant_market: { text: "你准备去黑市换取情报。", choices: [ {text:"去黑市", next:"merchant_blackmarket"}, {text:"改去河边", next:"merchant_river"} ] },
-    merchant_blackmarket: { text: "黑市上有一群陌生人，他们对你的货物虎视眈眈。", choices: [ {text:"用货物换情报", next:"merchant_info", condition: {hasItem: "布匹"}}, {text:"拒绝交易", next:"merchant_danger"} ] },
+    merchant_blackmarket: { text: "黑市上有一群陌生人，他们对你的货物虎视眈眈。", choices: [ {text:"用货物换情报", next:"merchant_info", condition: {hasItem: "布匹"}}, {text:"用金条换情报", next:"merchant_info_gold", condition: {hasItem: "金条"}}, {text:"拒绝交易", next:"merchant_danger"} ] },
     merchant_info: { text: "你换得一张西门守军贿赂名单。", choices: [ {text:"去西门", next:"merchant_west"}, {text:"回家藏货", next:"merchant_hide"} ] },
+    merchant_info_gold: { text: "金条让对方眼红，他们给了你情报，但似乎想黑吃黑。", choices: [ {text:"赶紧离开", next:"merchant_chase"}, {text:"雇佣保镖", next:"merchant_bodyguard", condition: {hasItem: "金条"}} ] },
+    merchant_chase: { text: "你在巷子里狂奔，后面有人追赶。", choices: [ {text:"躲进垃圾桶", next:"merchant_hide_trash"}, {text:"跑向教堂", next:"merchant_church"} ] },
+    merchant_hide_trash: { text: "你躲过了一劫，但浑身恶臭。", choices: [ {text:"前往西门", next:"merchant_west"} ] },
+    merchant_bodyguard: { text: "你用剩下的金子雇佣了一名流浪武师。", choices: [ {text:"前往西门", next:"merchant_west_safe"} ] },
+    merchant_west_safe: { text: "有保镖护送，你安全到达西门。", choices: [ {text:"贿赂守卫", next:"ending_merchant_west_escape"} ] },
+
     merchant_danger: { text: "他们试图抢劫你。", choices: [ {text:"交出货物", next:"merchant_info"}, {text:"反抗", next:"ending_merchant_dead"} ] },
-    merchant_hide: { text: "你带着货物回到家，但街上越来越危险。", choices: [ {text:"继续躲藏", next:"ending_merchant_caught"}, {text:"换条路走", next:"merchant_river"} ] },
+    merchant_hide: { text: "你带着货物回到家，但街上越来越危险。", choices: [ {text:"继续躲藏", next:"merchant_day1_start"}, {text:"换条路走", next:"merchant_river"} ] },
+
+    // 商人-资产保卫战分支 (Day 1-5)
+    merchant_day1_start: { text: "第一天。你决定死守家中的财物，等待局势好转。", choices: [ {text:"加固门窗", next:"merch_day1_fortify"}, {text:"清点库存", next:"merch_day1_stock"} ] },
+    merch_day1_fortify: { text: "你用木板封死了窗户。", choices: [ {text:"休息", next:"merch_day1_night"} ] },
+    merch_day1_stock: { text: "你还有不少罐头和烟酒。", choices: [ {text:"休息", next:"merch_day1_night"} ] },
+    merch_day1_night: { text: "有人在撬你的门。", choices: [ {text:"大声呵斥", next:"merch_day1_shout"}, {text:"从后门逃跑", next:"merchant_river"} ] },
+    merch_day1_shout: { text: "撬门声停止了。", choices: [ {text:"警惕", next:"merch_day2_morning"} ] },
+
+    merch_day2_morning: { text: "第二天。一名日本军官带着翻译来到你家。", choices: [ {text:"开门迎接", next:"merch_day2_welcome"}, {text:"装作没人", next:"merch_day2_ignore"} ] },
+    merch_day2_welcome: { text: "军官看中了你的古董花瓶。", choices: [ {text:"献上花瓶", next:"merch_day2_gift"}, {text:"开高价", next:"merch_day2_bargain"} ] },
+    merch_day2_gift: { text: "军官很高兴，给了你一张‘良民证’。", choices: [ {text:"收下", next:"merch_day2_night", effect: {addItem: "良民证"}} ] },
+    merch_day2_bargain: { text: "军官大怒，拔出了刀。", choices: [ {text:"求饶", next:"merch_day2_gift"}, {text:"反抗", next:"ending_merchant_dead"} ] },
+    merch_day2_ignore: { text: "士兵破门而入，发现你在家。", choices: [ {text:"被捕", next:"ending_merchant_caught"} ] },
+    merch_day2_night: { text: "有了良民证，你暂时安全了。", choices: [ {text:"睡觉", next:"merch_day3_morning"} ] },
+
+    merch_day3_morning: { text: "第三天。你可以凭证件在部分区域活动。", choices: [ {text:"去黑市倒卖物资", next:"merch_day3_trade"}, {text:"去教堂捐赠", next:"merchant_church"} ] },
+    merch_day3_trade: { text: "你用烟酒换来了大量金条。", choices: [ {text:"贪婪", next:"merch_day3_night", effect: {addItem: "大量金条"}} ] },
+    merch_day3_night: { text: "你抱着金条入睡，但内心充满恐惧。", choices: [ {text:"失眠", next:"merch_day4_morning", effect: {sanity: -10}} ] },
+
+    merch_day4_morning: { text: "第四天。全城开始大屠杀，良民证也不管用了。", choices: [ {text:"带着金条逃跑", next:"merch_day4_run"}, {text:"抛弃财物逃跑", next:"merch_day4_light"} ] },
+    merch_day4_run: { text: "金条太重，你跑不快。", choices: [ {text:"被追上", next:"ending_merchant_rich_death"} ] },
+    merch_day4_light: { text: "你扔掉了所有积蓄，只求活命。", choices: [ {text:"躲进废墟", next:"merch_day5_morning"} ] },
+
+    merch_day5_morning: { text: "第五天。你一无所有，但还活着。", choices: [ {text:"混入难民队伍", next:"ending_merchant_survive"} ] },
+
+    ending_merchant_rich_death: { text: "系统：你抱着金条被日军追上刺死，财物被抢走（商人结局9）", choices: [] },
+    ending_merchant_survive: { text: "系统：你失去了所有财富，作为乞丐活了下来（商人结局10）", choices: [] },
 
     merchant_escape_plan: { text: "你拿出一些金银首饰，打算用来贿赂士兵。", choices: [ {text:"去东门", next:"merchant_east"}, {text:"去西门", next:"merchant_west"} ] },
     merchant_east: { text: "东门士兵有些松懈。", choices: [ {text:"拿出金银贿赂", next:"ending_merchant_east_escape", condition: {hasItem: "金银"}}, {text:"改走河边", next:"merchant_river"} ] },
@@ -517,14 +583,43 @@ export const dialogues = {
     agent_follow: { text: "你跟着士兵来到西门岗哨。", choices: [ {text:"潜入岗哨", next:"agent_infiltrate"}, {text:"返回", next:"agent_hideout"} ] },
     agent_infiltrate: { text: "你潜入岗哨发现了敌军调动计划。", choices: [ {text:"带走计划", next:"ending_agent_win", effect: {addItem: "调动计划"}}, {text:"销毁计划", next:"ending_agent_fail"} ] },
 
-    agent_hideout: { text: "秘密据点里有几位同志在整理情报。", choices: [ {text:"参与整理", next:"agent_plan"}, {text:"前往教堂联络点", next:"agent_church"} ] },
-    agent_plan: { text: "大家决定分成两路行动。", choices: [ {text:"你带一份情报去东门", next:"agent_east", effect: {addItem: "情报"}}, {text:"去河边", next:"agent_river"} ] },
-    agent_east: { text: "东门守卫严密。", choices: [ {text:"贿赂守卫", next:"ending_agent_east_escape", condition: {hasItem: "钱币"}}, {text:"寻找暗道", next:"agent_tunnel"} ] },
-    agent_tunnel: { text: "你从暗道离开，避开敌军视线。", choices: [ {text:"进入暗道", next:"ending_agent_secret_escape"} ] },
+    agent_hideout: { text: "秘密据点里有几位同志在整理情报。书记告诉你，组织需要你在城内潜伏五天，配合即将到来的反攻。", choices: [ {text:"接受任务", next:"agent_day1_start"}, {text:"表示太危险", next:"agent_church"} ] },
 
-    agent_river: { text: "河边有士兵守卫渡口。", choices: [ {text:"夜晚行动", next:"agent_river_night"}, {text:"制造混乱", next:"agent_distraction"} ] },
-    agent_river_night: { text: "夜晚你顺利潜过河边，利用小船离开。", choices: [ {text:"离开", next:"ending_agent_river_escape"} ] },
-    agent_distraction: { text: "你制造噪音引开士兵。", choices: [ {text:"趁机划船逃走", next:"ending_agent_river_escape"}, {text:"撤回据点", next:"agent_hideout"} ] },
+    // 地下党员-潜伏任务分支 (Day 1-5)
+    agent_day1_start: { text: "第一天。你需要一个伪装身份。", choices: [ {text:"伪装成车夫", next:"agent_day1_rickshaw"}, {text:"伪装成乞丐", next:"agent_day1_beggar"} ] },
+    agent_day1_rickshaw: { text: "你拉着黄包车在街头穿梭，观察日军动向。", choices: [ {text:"拉一名日本军官", next:"agent_day1_officer"}, {text:"拉一名富商", next:"agent_day1_merchant"} ] },
+    agent_day1_officer: { text: "军官在车上谈论着‘南门’和‘午夜’。", choices: [ {text:"记下情报", next:"agent_day1_night", effect: {addItem: "口头情报"}} ] },
+    agent_day1_merchant: { text: "富商给了你不少赏钱。", choices: [ {text:"收下", next:"agent_day1_night", effect: {addItem: "钱币"}} ] },
+    agent_day1_beggar: { text: "你衣衫褴褛地坐在路边。", choices: [ {text:"观察哨所", next:"agent_day1_watch"}, {text:"向士兵乞讨", next:"agent_day1_beg"} ] },
+    agent_day1_watch: { text: "你摸清了哨兵的换岗规律。", choices: [ {text:"记下", next:"agent_day1_night", effect: {addItem: "换岗规律"}} ] },
+    agent_day1_beg: { text: "士兵踢了你一脚。", choices: [ {text:"忍耐", next:"agent_day1_night", effect: {health: -5}} ] },
+    agent_day1_night: { text: "夜深了，你回到据点汇报。", choices: [ {text:"汇报情报", next:"agent_day2_morning"}, {text:"休息", next:"agent_day2_morning"} ] },
+
+    agent_day2_morning: { text: "第二天。上级要求你破坏敌人的通讯线路。", choices: [ {text:"前往电报局", next:"agent_day2_office"}, {text:"破坏路边电话线", next:"agent_day2_wire"} ] },
+    agent_day2_office: { text: "电报局守卫森严。", choices: [ {text:"乔装进入", next:"agent_day2_disguise"}, {text:"放弃", next:"agent_day2_fail"} ] },
+    agent_day2_disguise: { text: "你假装成维修工混了进去，剪断了主电缆。", choices: [ {text:"撤离", next:"agent_day2_success"} ] },
+    agent_day2_wire: { text: "你在偏僻路段剪断了电话线。", choices: [ {text:"撤离", next:"agent_day2_success"} ] },
+    agent_day2_success: { text: "任务完成，敌人的指挥陷入短暂混乱。", choices: [ {text:"回据点", next:"agent_day2_night"} ] },
+    agent_day2_fail: { text: "你没能完成任务，组织对你表示失望。", choices: [ {text:"回据点", next:"agent_day2_night"} ] },
+    agent_day2_night: { text: "今晚全城戒严。", choices: [ {text:"睡觉", next:"agent_day3_morning"} ] },
+
+    agent_day3_morning: { text: "第三天。组织发现了一名叛徒。", choices: [ {text:"执行锄奸任务", next:"agent_day3_kill"}, {text:"负责转移据点", next:"agent_day3_move"} ] },
+    agent_day3_kill: { text: "你跟踪叛徒到了茶馆。", choices: [ {text:"下毒", next:"agent_day3_poison"}, {text:"暗巷刺杀", next:"agent_day3_stab", condition: {hasItem: "手术刀"}} ] }, // 手术刀可能来自医生线，这里假设通用物品或之前获得
+    agent_day3_poison: { text: "你在他的茶里下了毒。", choices: [ {text:"确认死亡后离开", next:"agent_day3_done"} ] },
+    agent_day3_stab: { text: "你干净利落地解决了叛徒。", choices: [ {text:"离开", next:"agent_day3_done"} ] },
+    agent_day3_move: { text: "你协助同志们搬运文件。", choices: [ {text:"销毁带不走的", next:"agent_day3_done"} ] },
+    agent_day3_done: { text: "危机暂时解除。", choices: [ {text:"休息", next:"agent_day4_morning"} ] },
+
+    agent_day4_morning: { text: "第四天。决战前夕，需要刺杀日军大佐。", choices: [ {text:"狙击", next:"agent_day4_sniper", condition: {hasItem: "步枪"}}, {text:"自杀式袭击", next:"agent_day4_bomb"} ] },
+    agent_day4_sniper: { text: "你埋伏在高楼，瞄准了大佐。", choices: [ {text:"开枪", next:"agent_day4_shot"} ] },
+    agent_day4_shot: { text: "一击毙命！全城警报大作。", choices: [ {text:"撤退", next:"agent_day5_morning"} ] },
+    agent_day4_bomb: { text: "你绑上炸药，冲向大佐的座驾。", choices: [ {text:"引爆", next:"ending_agent_hero"} ] },
+
+    agent_day5_morning: { text: "第五天。日军疯狂搜捕刺客。", choices: [ {text:"躲在下水道", next:"agent_day5_sewer"}, {text:"强行突围", next:"ending_agent_caught"} ] },
+    agent_day5_sewer: { text: "你在下水道躲了一整天，直到外面枪声平息。", choices: [ {text:"等待黎明", next:"ending_agent_survive"} ] },
+
+    ending_agent_hero: { text: "系统：你与日军大佐同归于尽，你的名字将永垂不朽（地下党员结局9）", choices: [] },
+    ending_agent_survive: { text: "系统：你成功活了下来，继续在黑暗中战斗（地下党员结局10）", choices: [] },
 
     agent_church: { text: "你顺利抵达教堂，此处比较安全。", choices: [ {text:"寻找联系人", next:"agent_safehouse2"}, {text:"躲在此处", next:"ending_agent_caught"} ] },
     agent_safehouse: { text: "安全屋内，同志们正在策划突袭。", choices: [ {text:"加入突袭", next:"ending_agent_action"}, {text:"转移情报", next:"ending_agent_win"} ] },
@@ -549,7 +644,40 @@ export const dialogues = {
     orphan_map: { text: "地图显示河边有一条小路通往城外。", choices: [ {text:"前往河边", next:"orphan_river"}, {text:"先去教堂", next:"orphan_church"} ] },
 
     orphan_church: { text: "教堂里有修女和难民，她看到你很可怜，递给你一块面包。", choices: [ {text:"留下", next:"orphan_church_stay"}, {text:"感谢后离开", next:"orphan_river", effect: {addItem: "面包"}} ] },
-    orphan_church_stay: { text: "你在教堂过夜，听到修女说河边有船只。", choices: [ {text:"第二天去河边", next:"orphan_river"}, {text:"继续留在教堂", next:"ending_orphan_safe"} ] },
+    orphan_church_stay: { text: "你在教堂过夜，听到修女说河边有船只。但你觉得教堂也不安全。", choices: [ {text:"第二天去河边", next:"orphan_river"}, {text:"继续留在教堂", next:"ending_orphan_safe"}, {text:"开始流浪生活", next:"orphan_day1_start"} ] },
+
+    // 孤儿-流浪生存分支 (Day 1-5)
+    orphan_day1_start: { text: "第一天。你决定靠自己活下去。你需要一个藏身之处。", choices: [ {text:"桥洞下", next:"orphan_day1_bridge"}, {text:"废弃狗窝", next:"orphan_day1_doghouse"} ] },
+    orphan_day1_bridge: { text: "桥洞下很冷，但能避雨。", choices: [ {text:"缩成一团", next:"orphan_day1_night", effect: {health: -5}} ] },
+    orphan_day1_doghouse: { text: "狗窝虽然小，但铺着干草，很暖和。", choices: [ {text:"钻进去", next:"orphan_day1_night", effect: {health: 5}} ] },
+    orphan_day1_night: { text: "夜晚，你听到巡逻队的脚步声。", choices: [ {text:"屏住呼吸", next:"orphan_day2_morning"} ] },
+
+    orphan_day2_morning: { text: "第二天。肚子饿得咕咕叫。", choices: [ {text:"去街上乞讨", next:"orphan_day2_beg"}, {text:"去市场偷窃", next:"orphan_day2_steal"} ] },
+    orphan_day2_beg: { text: "你跪在路边，大部分人无视你。", choices: [ {text:"坚持乞讨", next:"orphan_day2_beg_result"} ] },
+    orphan_day2_beg_result: { text: "一个好心的妇人给了你半个红薯。", choices: [ {text:"狼吞虎咽", next:"orphan_day2_night", effect: {health: 10}} ] },
+    orphan_day2_steal: { text: "你盯上了一个卖烧饼的摊位。", choices: [ {text:"趁乱拿一个", next:"orphan_day2_steal_success"}, {text:"放弃", next:"orphan_day2_night"} ] },
+    orphan_day2_steal_success: { text: "你成功偷到了烧饼，但被摊主追打。", choices: [ {text:"拼命跑", next:"orphan_day2_night", effect: {health: -5, addItem: "烧饼"}} ] },
+    orphan_day2_night: { text: "你吃着得来的食物，感到一丝满足。", choices: [ {text:"睡觉", next:"orphan_day3_morning"} ] },
+
+    orphan_day3_morning: { text: "第三天。你遇到了另一个流浪儿‘小石头’。", choices: [ {text:"和他结伴", next:"orphan_day3_friend"}, {text:"赶走他", next:"orphan_day3_alone"} ] },
+    orphan_day3_friend: { text: "小石头告诉你，他知道一个秘密的地窖。", choices: [ {text:"跟他去", next:"orphan_day3_cellar"} ] },
+    orphan_day3_cellar: { text: "地窖里藏着一些干粮和水。", choices: [ {text:"分享食物", next:"orphan_day3_night", effect: {sanity: 10}} ] },
+    orphan_day3_alone: { text: "你独自一人，感到孤独。", choices: [ {text:"发呆", next:"orphan_day3_night", effect: {sanity: -5}} ] },
+    orphan_day3_night: { text: "两个人挤在一起比一个人暖和多了。", choices: [ {text:"睡觉", next:"orphan_day4_morning"} ] },
+
+    orphan_day4_morning: { text: "第四天。日军开始抓捕壮丁和劳工，连孩子也不放过。", choices: [ {text:"躲在地窖里", next:"orphan_day4_hide"}, {text:"出去探风", next:"orphan_day4_scout"} ] },
+    orphan_day4_hide: { text: "你们在地窖里躲了一整天。", choices: [ {text:"忍耐饥饿", next:"orphan_day4_night", effect: {health: -5}} ] },
+    orphan_day4_scout: { text: "你看到一队士兵正朝这边走来。", choices: [ {text:"跑回去报信", next:"orphan_day4_warn"}, {text:"自己逃跑", next:"orphan_day4_run_alone"} ] },
+    orphan_day4_warn: { text: "你和小石头及时转移了。", choices: [ {text:"躲进下水道", next:"orphan_day5_morning"} ] },
+    orphan_day4_run_alone: { text: "你抛弃了小石头，独自逃跑。", choices: [ {text:"愧疚", next:"orphan_day5_morning", effect: {sanity: -20}} ] },
+    orphan_day4_night: { text: "外面全是抓人的声音。", choices: [ {text:"祈祷", next:"orphan_day5_morning"} ] },
+
+    orphan_day5_morning: { text: "第五天。你们发现下水道通往城外。", choices: [ {text:"钻过铁栅栏", next:"orphan_day5_escape"}, {text:"寻找其他出口", next:"orphan_day5_search"} ] },
+    orphan_day5_escape: { text: "因为身材瘦小，你们成功钻过了栅栏。", choices: [ {text:"重见天日", next:"ending_orphan_survive"} ] },
+    orphan_day5_search: { text: "你们迷路了。", choices: [ {text:"继续找", next:"ending_orphan_lost"} ] },
+
+    ending_orphan_survive: { text: "系统：你和小石头逃出了南京城，在战火中相依为命活了下来（孤儿结局5）", choices: [] },
+    ending_orphan_lost: { text: "系统：你们在下水道中迷失方向，最终饿死（孤儿结局6）", choices: [] },
 
     orphan_refugee: { text: "你跟在一群难民身后，他们讨论西门是否能逃出去。", choices: [ {text:"跟去西门", next:"orphan_west"}, {text:"离开队伍去河边", next:"orphan_river"} ] },
     orphan_west: { text: "西门守军严密，难民中有人建议贿赂。", choices: [ {text:"凑钱贿赂", next:"ending_orphan_west_escape", condition: {hasItem: "钱币"}}, {text:"放弃改走河边", next:"orphan_river"} ] },
