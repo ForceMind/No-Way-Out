@@ -1,4 +1,4 @@
-import { identities, identityDialogues, dialogues } from './data.js';
+import { identities, storyData } from './data.js';
 import { ParticleSystem, AudioManager } from './effects.js';
 
 class Game {
@@ -247,7 +247,7 @@ class Game {
         this.updateStatus();
         this.playBGM();
         
-        const identityData = dialogues[this.state.currentIdentity];
+        const identityData = storyData[this.state.currentIdentity];
         if (identityData && identityData[this.state.currentNode]) {
             this.renderNode(identityData[this.state.currentNode]);
         }
@@ -255,19 +255,20 @@ class Game {
 
     renderIdentityList() {
         this.elements.identityList.innerHTML = '';
-        identities.forEach(id => {
+        identities.forEach(idObj => {
             const btn = document.createElement('button');
-            btn.textContent = id;
+            btn.textContent = idObj.name;
             btn.classList.add('identity-btn');
-            btn.addEventListener('click', () => this.selectIdentity(id));
+            btn.addEventListener('click', () => this.selectIdentity(idObj.id));
             this.elements.identityList.appendChild(btn);
         });
     }
 
     selectIdentity(id) {
         this.state.currentIdentity = id;
-        this.elements.identityTitle.textContent = "当前身份：" + id;
-        this.elements.identityDesc.textContent = identityDialogues[id];
+        const idObj = identities.find(i => i.id === id);
+        this.elements.identityTitle.textContent = "当前身份：" + idObj.name;
+        this.elements.identityDesc.textContent = idObj.desc;
         this.elements.introText.style.display = 'none';
         
         // 隐藏列表，显示确认按钮
@@ -298,7 +299,7 @@ class Game {
     }
 
     playNode(nodeKey) {
-        const identityData = dialogues[this.state.currentIdentity] || dialogues['市民'];
+        const identityData = storyData[this.state.currentIdentity];
         const node = identityData[nodeKey];
 
         if (!node) {
@@ -306,7 +307,7 @@ class Game {
             return;
         }
 
-        this.state.currentNode = node;
+        this.state.currentNode = nodeKey; // Store key, not object, for saving
         
         // 清空选项
         this.elements.choicesArea.innerHTML = '';
@@ -315,6 +316,17 @@ class Game {
         this.typewriter(node.text, () => {
             this.renderChoices(node.choices);
         });
+    }
+
+    // Helper to render node from object (used in loadGame)
+    renderNode(node) {
+         // 清空选项
+         this.elements.choicesArea.innerHTML = '';
+        
+         // 打字机效果显示文本
+         this.typewriter(node.text, () => {
+             this.renderChoices(node.choices);
+         });
     }
 
     typewriter(text, callback) {

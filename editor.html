@@ -46,15 +46,19 @@
     <div id="toolbar">
         <h2>剧情节点编辑</h2>
         <div>
-            <button class="btn" onclick="exportData()">导出 data.js 代码</button>
+            <button class="btn" onclick="exportData()">导出 JSON (需手动拆分)</button>
         </div>
     </div>
+
     <div id="editor-area">
-        <div id="no-selection" style="text-align: center; color: #888; margin-top: 50px;">请选择一个节点进行编辑</div>
+        <div id="no-selection" style="text-align:center; margin-top:50px; color:#888;">
+            请在左侧选择一个身份和节点开始编辑
+        </div>
+
         <div id="edit-form" style="display:none;">
             <div class="form-group">
                 <label>节点 ID (Key)</label>
-                <input type="text" id="node-key" readonly style="background: #eee;">
+                <input type="text" id="node-key" disabled style="background:#eee;">
             </div>
             <div class="form-group">
                 <label>剧情文本</label>
@@ -74,11 +78,11 @@
 </div>
 
 <script type="module">
-    import { identities, identityDialogues, dialogues } from './js/data.js';
+    import { identities, storyData } from './js/data.js';
 
     // Deep copy to avoid direct mutation issues until save
-    let currentData = JSON.parse(JSON.stringify(dialogues));
-    let currentIdentity = identities[0];
+    let currentData = JSON.parse(JSON.stringify(storyData));
+    let currentIdentity = identities[0].id;
     let currentNodeKey = null;
 
     const identityListEl = document.getElementById('identity-list');
@@ -94,11 +98,11 @@
 
     function renderIdentities() {
         identityListEl.innerHTML = '';
-        identities.forEach(id => {
+        identities.forEach(idObj => {
             const div = document.createElement('div');
-            div.className = `identity-item ${id === currentIdentity ? 'active' : ''}`;
-            div.textContent = id;
-            div.onclick = () => selectIdentity(id);
+            div.className = `identity-item ${idObj.id === currentIdentity ? 'active' : ''}`;
+            div.textContent = idObj.name;
+            div.onclick = () => selectIdentity(idObj.id);
             identityListEl.appendChild(div);
         });
     }
@@ -238,20 +242,18 @@
     };
 
     window.exportData = () => {
-        const exportString = `export const identities = ${JSON.stringify(identities)};\n\n` +
-                           `export const identityDialogues = ${JSON.stringify(identityDialogues, null, 2)};\n\n` +
-                           `export const dialogues = ${JSON.stringify(currentData, null, 2)};`;
+        const exportString = JSON.stringify(currentData, null, 2);
         
         // Create a blob and download
-        const blob = new Blob([exportString], { type: 'text/javascript' });
+        const blob = new Blob([exportString], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'data.js';
+        a.download = 'storyData.json';
         a.click();
         URL.revokeObjectURL(url);
         
-        alert("data.js 已生成并下载。请用它替换项目中的 js/data.js 文件。");
+        alert("storyData.json 已生成。由于项目已拆分文件，请手动将对应内容更新到 js/stories/ 下的各文件中。");
     };
 
     init();
