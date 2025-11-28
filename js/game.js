@@ -1,0 +1,286 @@
+import { identities, identityDialogues, dialogues } from './data.js';
+import { ParticleSystem, AudioManager } from './effects.js';
+
+class Game {
+    constructor() {
+        this.state = {
+            currentIdentity: null,
+            currentNode: null,
+            inventory: [],
+            health: 100,
+            history: []
+        };
+        
+        this.elements = {
+            titleScreen: document.getElementById('title-screen'),
+            identityScreen: document.getElementById('identity-screen'),
+            gameContainer: document.getElementById('game-container'),
+            identityList: document.getElementById('identity-list'),
+            identityDesc: document.getElementById('identity-description'),
+            identityTitle: document.getElementById('identity-title'),
+            confirmBtn: document.getElementById('confirm-identity'),
+            reselectBtn: document.getElementById('reselect-identity'),
+            introText: document.getElementById('intro-text'),
+            dialogueText: document.getElementById('dialogue-text'),
+            choicesArea: document.getElementById('choices-area'),
+            healthDisplay: document.getElementById('health-display'),
+            inventoryDisplay: document.getElementById('inventory-display')
+        };
+
+        // Audio context (placeholder for user to add files)
+        this.audio = {
+            bgm: new Audio(),
+            sfx: new Audio(),
+            manager: new AudioManager()
+        };
+        this.audio.bgm.loop = true;
+        
+        this.particles = new ParticleSystem();
+
+        this.typewriterTimeout = null;
+        this.init();
+    }
+
+    playBGM(src) {
+        // Try to play procedural ambience if no file is provided or as fallback
+        if (src === 'theme.mp3') {
+             // User interaction is required to start AudioContext
+             document.addEventListener('click', () => {
+                 this.audio.manager.startAmbience();
+             }, { once: true });
+        }
+        // Uncomment and ensure file exists in assets/audio/
+        // this.audio.bgm.src = `assets/audio/${src}`;
+        // this.audio.bgm.play().catch(e => console.log("Audio play failed (user interaction required or file missing):", e));
+    }
+
+    playSFX(src) {
+        // Uncomment and ensure file exists in assets/audio/
+        // const sfx = new Audio(`assets/audio/${src}`);
+        // sfx.play().catch(e => {});
+    }
+
+    init() {
+        this.setupEventListeners();
+        this.renderIdentityList();
+        this.showScreen('title');
+    }
+
+    setupEventListeners() {
+        document.getElementById('start-btn').addEventListener('click', () => {
+            this.showScreen('identity');
+            this.playSFX('click.mp3');
+            this.playBGM('theme.mp3'); // Example BGM
+        });
+        
+        this.elements.confirmBtn.addEventListener('click', () => {
+            if (this.state.currentIdentity) {
+                this.playSFX('confirm.mp3');
+                this.startGame();
+            }
+        });
+
+        this.elements.reselectBtn.addEventListener('click', () => {
+            this.playSFX('click.mp3');
+            this.resetIdentitySelection()
+        });
+    }
+
+    renderIdentityList() {
+        this.elements.identityList.innerHTML = '';
+        identities.forEach(id => {
+            const btn = document.createElement('button');
+            btn.textContent = id;
+            btn.classList.add('identity-btn');
+            btn.addEventListener('click', () => this.selectIdentity(id));
+            this.elements.identityList.appendChild(btn);
+        });
+    }
+
+    selectIdentity(id) {
+        this.state.currentIdentity = id;
+        this.elements.identityTitle.textContent = "当前身份：" + id;
+        this.elements.identityDesc.textContent = identityDialogues[id];
+        this.elements.introText.style.display = 'none';
+        
+        // 隐藏列表，显示确认按钮
+        Array.from(this.elements.identityList.children).forEach(btn => btn.style.display = 'none');
+        this.elements.confirmBtn.style.display = 'inline-block';
+        this.elements.reselectBtn.style.display = 'inline-block';
+    }
+
+    resetIdentitySelection() {
+        this.state.currentIdentity = null;
+        this.elements.identityTitle.textContent = "选择你的身份";
+        this.elements.identityDesc.textContent = '';
+        this.elements.introText.style.display = 'block';
+        
+        Array.from(this.elements.identityList.children).forEach(btn => btn.style.display = 'inline-block');
+        this.elements.confirmBtn.style.display = 'none';
+        this.elements.reselectBtn.style.display = 'none';
+    }
+
+    startGame() {
+        this.state.inventory = [];
+        this.state.health = 100;
+        this.state.history = [];
+        this.updateStatus();
+        this.showScreen('game');
+        this.playNode('start');
+    }
+
+    playNode(nodeKey) {
+        const identityData = dialogues[this.state.currentIdentity] || dialogues['市民'];
+        const node = identityData[nodeKey];
+
+        if (!node) {
+            console.error(`Node ${nodeKey} not found for identity ${this.state.currentIdentity}`);
+            return;
+        }
+
+        this.state.currentNode = node;
+        
+        // 清空选项
+        this.elements.choicesArea.innerHTML = '';
+        
+        // 打字机效果显示文本
+        this.typewriter(node.text, () => {
+            this.renderChoices(node.choices);
+        });
+    }
+
+    typewriter(text, callback) {
+        const element = this.elements.dialogueText;
+        element.textContent = '';
+        element.classList.add('cursor');
+        
+        let i = 0;
+        if (this.typewriterTimeout) clearTimeout(this.typewriterTimeout);
+
+        const type = () => {
+            if (i < text.length) {
+                element.textContent += text.charAt(i);
+                i++;
+                this.typewriterTimeout = setTimeout(type, 30); // 打字速度
+            } else {
+                element.classList.remove('cursor');
+                if (callback) callback();
+            }
+        };
+        type();
+    }
+
+    renderChoices(choices) {
+        if (!choices || choices.length === 0) {
+            // 结局或无选项，提供返回主菜单按钮
+            const btn = document.createElement('button');
+            btn.textContent = "返回主菜单";
+            btn.classList.add('choice-btn', 'fade-in');
+            btn.addEventListener('click', () => location.reload());
+            this.elements.choicesArea.appendChild(btn);
+            return;
+        }
+
+        choices.forEach(choice => {
+            // 检查条件
+            if (choice.condition) {
+                if (choice.condition.hasItem && !this.state.inventory.includes(choice.condition.hasItem)) {
+                    return; // 不满足条件，不显示
+                }
+                // 可以添加更多条件检查，如 health > 50 等
+            }
+
+            const btn = document.createElement('button');
+            btn.textContent = choice.text;
+            btn.classList.add('choice-btn', 'fade-in');
+            btn.addEventListener('click', () => this.makeChoice(choice));
+            this.elements.choicesArea.appendChild(btn);
+        });
+    }
+
+    makeChoice(choice) {
+        // 应用效果
+        if (choice.effect) {
+            if (choice.effect.addItem) {
+                this.addItem(choice.effect.addItem);
+            }
+            if (choice.effect.removeItem) {
+                this.removeItem(choice.effect.removeItem);
+            }
+            if (choice.effect.changeHealth) {
+                this.changeHealth(choice.effect.changeHealth);
+            }
+        }
+
+        this.playNode(choice.next);
+    }
+
+    addItem(item) {
+        if (!this.state.inventory.includes(item)) {
+            this.state.inventory.push(item);
+            this.updateStatus();
+            this.showNotification(`获得物品：${item}`);
+        }
+    }
+
+    removeItem(item) {
+        const index = this.state.inventory.indexOf(item);
+        if (index > -1) {
+            this.state.inventory.splice(index, 1);
+            this.updateStatus();
+            this.showNotification(`失去物品：${item}`);
+        }
+    }
+
+    changeHealth(amount) {
+        this.state.health += amount;
+        if (this.state.health > 100) this.state.health = 100;
+        if (this.state.health < 0) this.state.health = 0;
+        this.updateStatus();
+        if (amount < 0) this.showNotification(`生命值减少 ${Math.abs(amount)}`);
+        else this.showNotification(`生命值增加 ${amount}`);
+    }
+
+    updateStatus() {
+        this.elements.healthDisplay.textContent = `生命：${this.state.health}`;
+        this.elements.inventoryDisplay.innerHTML = '';
+        this.state.inventory.forEach(item => {
+            const span = document.createElement('span');
+            span.textContent = item;
+            span.classList.add('item-tag');
+            this.elements.inventoryDisplay.appendChild(span);
+        });
+    }
+
+    showNotification(msg) {
+        // 简单的通知实现，可以扩展
+        console.log(msg); 
+        // 可以在界面上显示一个临时的浮层
+        const note = document.createElement('div');
+        note.textContent = msg;
+        note.style.position = 'absolute';
+        note.style.top = '10px';
+        note.style.right = '10px';
+        note.style.background = '#333';
+        note.style.padding = '10px';
+        note.style.border = '1px solid #fff';
+        note.style.animation = 'fadeIn 0.5s, fadeOut 0.5s 2.5s forwards';
+        document.body.appendChild(note);
+        setTimeout(() => note.remove(), 3000);
+    }
+
+    showScreen(screenName) {
+        this.elements.titleScreen.style.display = 'none';
+        this.elements.identityScreen.style.display = 'none';
+        this.elements.gameContainer.style.display = 'none';
+
+        if (screenName === 'title') this.elements.titleScreen.style.display = 'block';
+        else if (screenName === 'identity') this.elements.identityScreen.style.display = 'flex';
+        else if (screenName === 'game') this.elements.gameContainer.style.display = 'flex';
+    }
+}
+
+// 启动游戏
+window.addEventListener('DOMContentLoaded', () => {
+    new Game();
+});

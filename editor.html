@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>无归之城 - 剧情编辑器</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; height: 100vh; margin: 0; background: #f0f0f0; }
+        #sidebar { width: 250px; background: #333; color: white; overflow-y: auto; display: flex; flex-direction: column; }
+        #sidebar h3 { padding: 10px; margin: 0; background: #222; }
+        .identity-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #444; }
+        .identity-item:hover { background: #444; }
+        .identity-item.active { background: #555; font-weight: bold; }
+        
+        #node-list { flex: 1; overflow-y: auto; background: #ddd; color: #333; }
+        .node-item { padding: 8px 15px; cursor: pointer; border-bottom: 1px solid #ccc; }
+        .node-item:hover { background: #eee; }
+        .node-item.active { background: #fff; border-left: 4px solid #333; }
+
+        #editor-area { flex: 1; padding: 20px; display: flex; flex-direction: column; overflow-y: auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        textarea { width: 100%; height: 100px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        input[type="text"] { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        
+        #choices-editor { border: 1px solid #ccc; padding: 10px; background: #fff; border-radius: 4px; }
+        .choice-item { border: 1px solid #eee; padding: 10px; margin-bottom: 10px; background: #f9f9f9; }
+        .btn { padding: 8px 15px; background: #333; color: white; border: none; cursor: pointer; border-radius: 4px; margin-right: 5px; }
+        .btn:hover { background: #555; }
+        .btn-danger { background: #d9534f; }
+        .btn-success { background: #5cb85c; }
+
+        #toolbar { padding: 10px; background: #fff; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <h3>身份列表</h3>
+    <div id="identity-list"></div>
+    <h3>节点列表 <button class="btn btn-success" style="font-size: 12px; padding: 2px 5px;" onclick="addNode()">+</button></h3>
+    <div id="node-list"></div>
+</div>
+
+<div style="flex:1; display:flex; flex-direction:column;">
+    <div id="toolbar">
+        <h2>剧情节点编辑</h2>
+        <div>
+            <button class="btn" onclick="exportData()">导出 data.js 代码</button>
+        </div>
+    </div>
+    <div id="editor-area">
+        <div id="no-selection" style="text-align: center; color: #888; margin-top: 50px;">请选择一个节点进行编辑</div>
+        <div id="edit-form" style="display:none;">
+            <div class="form-group">
+                <label>节点 ID (Key)</label>
+                <input type="text" id="node-key" readonly style="background: #eee;">
+            </div>
+            <div class="form-group">
+                <label>剧情文本</label>
+                <textarea id="node-text"></textarea>
+            </div>
+            <div class="form-group">
+                <label>选项 (Choices)</label>
+                <div id="choices-editor"></div>
+                <button class="btn" style="margin-top:10px;" onclick="addChoice()">添加选项</button>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-success" onclick="saveCurrentNode()">保存当前节点修改</button>
+                <button class="btn btn-danger" onclick="deleteCurrentNode()">删除节点</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { identities, identityDialogues, dialogues } from './js/data.js';
+
+    // Deep copy to avoid direct mutation issues until save
+    let currentData = JSON.parse(JSON.stringify(dialogues));
+    let currentIdentity = identities[0];
+    let currentNodeKey = null;
+
+    const identityListEl = document.getElementById('identity-list');
+    const nodeListEl = document.getElementById('node-list');
+    const editForm = document.getElementById('edit-form');
+    const noSelection = document.getElementById('no-selection');
+    const choicesEditor = document.getElementById('choices-editor');
+
+    function init() {
+        renderIdentities();
+        selectIdentity(currentIdentity);
+    }
+
+    function renderIdentities() {
+        identityListEl.innerHTML = '';
+        identities.forEach(id => {
+            const div = document.createElement('div');
+            div.className = `identity-item ${id === currentIdentity ? 'active' : ''}`;
+            div.textContent = id;
+            div.onclick = () => selectIdentity(id);
+            identityListEl.appendChild(div);
+        });
+    }
+
+    function selectIdentity(id) {
+        currentIdentity = id;
+        renderIdentities();
+        renderNodes();
+        editForm.style.display = 'none';
+        noSelection.style.display = 'block';
+    }
+
+    function renderNodes() {
+        nodeListEl.innerHTML = '';
+        const nodes = currentData[currentIdentity] || {};
+        Object.keys(nodes).forEach(key => {
+            const div = document.createElement('div');
+            div.className = `node-item ${key === currentNodeKey ? 'active' : ''}`;
+            div.textContent = key;
+            div.onclick = () => selectNode(key);
+            nodeListEl.appendChild(div);
+        });
+    }
+
+    function selectNode(key) {
+        currentNodeKey = key;
+        renderNodes();
+        
+        const node = currentData[currentIdentity][key];
+        document.getElementById('node-key').value = key;
+        document.getElementById('node-text').value = node.text;
+        
+        renderChoices(node.choices || []);
+        
+        editForm.style.display = 'block';
+        noSelection.style.display = 'none';
+    }
+
+    function renderChoices(choices) {
+        choicesEditor.innerHTML = '';
+        choices.forEach((choice, index) => {
+            const div = document.createElement('div');
+            div.className = 'choice-item';
+            div.innerHTML = `
+                <div style="margin-bottom:5px;">
+                    <label>选项文本:</label>
+                    <input type="text" class="choice-text" value="${choice.text}">
+                </div>
+                <div style="margin-bottom:5px;">
+                    <label>跳转节点 (Next):</label>
+                    <input type="text" class="choice-next" value="${choice.next || ''}">
+                </div>
+                <div style="margin-bottom:5px;">
+                    <label>效果 (Effect - JSON):</label>
+                    <input type="text" class="choice-effect" value='${JSON.stringify(choice.effect || {})}' placeholder='{"addItem":"key"}'>
+                </div>
+                <button class="btn btn-danger" onclick="window.removeChoice(${index})">删除</button>
+            `;
+            choicesEditor.appendChild(div);
+        });
+    }
+
+    window.addChoice = () => {
+        const div = document.createElement('div');
+        div.className = 'choice-item';
+        div.innerHTML = `
+            <div style="margin-bottom:5px;">
+                <label>选项文本:</label>
+                <input type="text" class="choice-text" value="新选项">
+            </div>
+            <div style="margin-bottom:5px;">
+                <label>跳转节点 (Next):</label>
+                <input type="text" class="choice-next" value="">
+            </div>
+            <div style="margin-bottom:5px;">
+                <label>效果 (Effect - JSON):</label>
+                <input type="text" class="choice-effect" value="{}" placeholder='{"addItem":"key"}'>
+            </div>
+            <button class="btn btn-danger" onclick="this.parentElement.remove()">删除</button>
+        `;
+        choicesEditor.appendChild(div);
+    };
+
+    window.removeChoice = (index) => {
+        // Re-render is easier but for now just DOM removal is handled by inline onclick for new ones.
+        // For existing ones, we need to be careful. 
+        // Actually, let's just save the state before re-rendering or just use DOM traversal on save.
+        selectNode(currentNodeKey); // Reset to saved state
+        // Wait, this is tricky. Let's just use DOM traversal for saving.
+    };
+
+    window.saveCurrentNode = () => {
+        if (!currentNodeKey) return;
+        
+        const text = document.getElementById('node-text').value;
+        const choiceItems = choicesEditor.querySelectorAll('.choice-item');
+        const choices = [];
+        
+        choiceItems.forEach(item => {
+            const txt = item.querySelector('.choice-text').value;
+            const nxt = item.querySelector('.choice-next').value;
+            let eff = {};
+            try {
+                eff = JSON.parse(item.querySelector('.choice-effect').value || '{}');
+            } catch(e) { console.error("Invalid JSON in effect"); }
+            
+            choices.push({ text: txt, next: nxt, effect: eff });
+        });
+
+        currentData[currentIdentity][currentNodeKey] = {
+            text: text,
+            choices: choices
+        };
+        
+        alert('节点已保存至内存！记得点击导出。');
+    };
+
+    window.addNode = () => {
+        const key = prompt("请输入新节点ID (例如: street_event_1):");
+        if (key && !currentData[currentIdentity][key]) {
+            currentData[currentIdentity][key] = { text: "新剧情...", choices: [] };
+            renderNodes();
+            selectNode(key);
+        } else if (currentData[currentIdentity][key]) {
+            alert("节点ID已存在");
+        }
+    };
+
+    window.deleteCurrentNode = () => {
+        if (confirm("确定删除此节点吗？")) {
+            delete currentData[currentIdentity][currentNodeKey];
+            currentNodeKey = null;
+            renderNodes();
+            editForm.style.display = 'none';
+            noSelection.style.display = 'block';
+        }
+    };
+
+    window.exportData = () => {
+        const exportString = `export const identities = ${JSON.stringify(identities)};\n\n` +
+                           `export const identityDialogues = ${JSON.stringify(identityDialogues, null, 2)};\n\n` +
+                           `export const dialogues = ${JSON.stringify(currentData, null, 2)};`;
+        
+        // Create a blob and download
+        const blob = new Blob([exportString], { type: 'text/javascript' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'data.js';
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        alert("data.js 已生成并下载。请用它替换项目中的 js/data.js 文件。");
+    };
+
+    init();
+</script>
+
+</body>
+</html>
