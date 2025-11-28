@@ -8,6 +8,7 @@ class Game {
             currentNode: null,
             inventory: [],
             health: 100,
+            sanity: 100,
             history: []
         };
         
@@ -24,6 +25,7 @@ class Game {
             dialogueText: document.getElementById('dialogue-text'),
             choicesArea: document.getElementById('choices-area'),
             healthDisplay: document.getElementById('health-display'),
+            sanityDisplay: document.getElementById('sanity-display'),
             inventoryDisplay: document.getElementById('inventory-display'),
             settingsModal: document.getElementById('settings-modal'),
             bgmSlider: document.getElementById('bgm-volume'),
@@ -288,6 +290,7 @@ class Game {
     startGame() {
         this.state.inventory = [];
         this.state.health = 100;
+        this.state.sanity = 100;
         this.state.history = [];
         this.updateStatus();
         this.showScreen('game');
@@ -377,6 +380,12 @@ class Game {
             if (choice.effect.changeHealth) {
                 this.changeHealth(choice.effect.changeHealth);
             }
+            if (choice.effect.health) {
+                this.changeHealth(choice.effect.health);
+            }
+            if (choice.effect.sanity) {
+                this.changeSanity(choice.effect.sanity);
+            }
         }
 
         this.playNode(choice.next);
@@ -408,8 +417,20 @@ class Game {
         else this.showNotification(`生命值增加 ${amount}`);
     }
 
+    changeSanity(amount) {
+        this.state.sanity += amount;
+        if (this.state.sanity > 100) this.state.sanity = 100;
+        if (this.state.sanity < 0) this.state.sanity = 0;
+        this.updateStatus();
+        if (amount < 0) this.showNotification(`理智减少 ${Math.abs(amount)}`);
+        else this.showNotification(`理智增加 ${amount}`);
+    }
+
     updateStatus() {
         this.elements.healthDisplay.textContent = `生命：${this.state.health}`;
+        if (this.elements.sanityDisplay) {
+            this.elements.sanityDisplay.textContent = `理智：${this.state.sanity}`;
+        }
         this.elements.inventoryDisplay.innerHTML = '';
         this.state.inventory.forEach(item => {
             const span = document.createElement('span');

@@ -233,7 +233,36 @@ export const dialogues = {
     water_sneak: { text: "你悄悄打水，哨兵似乎听到了声音。", choices: [ {text:"装作乞丐", next:"water_beg"}, {text:"迅速离开", next:"warehouse1"} ] },
     water_beg: { text: "哨兵用枪驱赶你，你低声求饶后逃走。", choices: [ {text:"返回仓库", next:"warehouse1"} ] },
 
-    warehouse1: { text: "仓库里聚集了许多难民，他们在商议逃生路线。", choices: [ {text:"跟随大队走", next:"team1"}, {text:"单独探索", next:"alone1"}, {text:"向人打听情报", next:"warehouse_info"} ] },
+    warehouse1: { text: "仓库里聚集了许多难民，他们在商议逃生路线。有人提议建立临时营地，等待救援。", choices: [ {text:"跟随大队走", next:"team1"}, {text:"单独探索", next:"alone1"}, {text:"留在仓库建立营地", next:"refugee_camp_start"} ] },
+
+    // 难民-仓库营地分支 (Day 1-5)
+    refugee_camp_start: { text: "第一天。你决定留在仓库，和大家抱团取暖。你需要选择一个角色。", choices: [ {text:"负责搜寻物资", next:"camp_scout"}, {text:"负责照顾老弱", next:"camp_care"} ] },
+    camp_scout: { text: "你带队出去寻找食物，在一处废墟发现了米缸。", choices: [ {text:"搬回仓库", next:"camp_day1_night", effect: {addItem: "米缸"}}, {text:"私藏一部分", next:"camp_day1_night", effect: {addItem: "私藏米"}} ] },
+    camp_care: { text: "你留下来照顾生病的老人，获得大家的感激。", choices: [ {text:"休息", next:"camp_day1_night", effect: {sanity: 5}} ] },
+    camp_day1_night: { text: "夜晚，仓库外传来枪声。大家都很害怕。", choices: [ {text:"轮流守夜", next:"camp_day2_morning"} ] },
+
+    camp_day2_morning: { text: "第二天。一名难民发高烧了，可能是传染病。", choices: [ {text:"建议隔离", next:"camp_day2_iso"}, {text:"隐瞒病情", next:"camp_day2_hide"} ] },
+    camp_day2_iso: { text: "家属激烈反对，引发了争执。", choices: [ {text:"强行隔离", next:"camp_day2_conflict"}, {text:"妥协", next:"camp_day2_spread"} ] },
+    camp_day2_conflict: { text: "你被打了一拳，但病人被隔离了。", choices: [ {text:"忍痛", next:"camp_day2_night", effect: {health: -5}} ] },
+    camp_day2_spread: { text: "病情开始蔓延。", choices: [ {text:"担忧", next:"camp_day2_night", effect: {sanity: -10}} ] },
+    camp_day2_hide: { text: "你选择不说，但心里不安。", choices: [ {text:"愧疚", next:"camp_day2_night", effect: {sanity: -5}} ] },
+    camp_day2_night: { text: "仓库里的空气变得浑浊。", choices: [ {text:"睡觉", next:"camp_day3_morning"} ] },
+
+    camp_day3_morning: { text: "第三天。日军搜查队靠近了仓库。", choices: [ {text:"全体静默", next:"camp_day3_silent"}, {text:"分批撤离", next:"camp_day3_evac"} ] },
+    camp_day3_silent: { text: "婴儿突然哭了起来。", choices: [ {text:"捂住婴儿的嘴", next:"camp_day3_baby"}, {text:"暴露", next:"ending_refugee_massacre"} ] },
+    camp_day3_baby: { text: "婴儿停止了哭泣（窒息），日军离开了。", choices: [ {text:"痛哭", next:"camp_day3_night", effect: {sanity: -50}} ] },
+    camp_day3_evac: { text: "撤离途中遭遇巡逻队。", choices: [ {text:"四散逃跑", next:"ending_refugee_scatter"} ] },
+    camp_day3_night: { text: "经历了白天的惊魂，大家士气低落。", choices: [ {text:"鼓励大家", next:"camp_day4_morning"} ] },
+
+    camp_day4_morning: { text: "第四天。仓库已经不安全了，必须突围。", choices: [ {text:"冲向江边", next:"camp_day4_river"}, {text:"冲向西门", next:"camp_day4_west"} ] },
+    camp_day4_river: { text: "江边有日军机枪阵地。", choices: [ {text:"冲锋", next:"ending_refugee_river_death"} ] },
+    camp_day4_west: { text: "西门大开，似乎是陷阱。", choices: [ {text:"硬着头皮冲", next:"ending_refugee_west_trap"} ] },
+
+    ending_refugee_massacre: { text: "系统：日军发现了仓库，所有人被屠杀（难民结局11）", choices: [] },
+    ending_refugee_scatter: { text: "系统：你在逃跑中被流弹击中身亡（难民结局12）", choices: [] },
+    ending_refugee_river_death: { text: "系统：你倒在了通往江边的路上（难民结局13）", choices: [] },
+    ending_refugee_west_trap: { text: "系统：你冲出西门，踩中了地雷（难民结局14）", choices: [] },
+
     warehouse_info: { text: "有人低声说西门有一条未封死的下水道。", choices: [ {text:"去查看", next:"sewer1"}, {text:"不相信", next:"team1"} ] },
     sewer1: { text: "下水道口臭气熏天，但也许能通到城外。", choices: [ {text:"进入", next:"sewer_inside1"}, {text:"放弃", next:"warehouse1"} ] },
     sewer_inside1: { text: "你在黑暗的管道里摸索前行，前方传来奇怪的声响。", choices: [ {text:"靠近查看", next:"sewer_rat"}, {text:"原路返回", next:"warehouse1"} ] },
@@ -539,12 +568,38 @@ export const dialogues = {
 农夫: {
     start: { text: "你是一名农夫，平日里在城郊种地。日军入侵后，你被困在城内。", choices: [ {text:"带上锄头防身", next:"farmer_tool", effect: {addItem: "锄头"}}, {text:"寻找食物", next:"farmer_food"}, {text:"去找家人", next:"farmer_family"} ] },
 
-    farmer_tool: { text: "你拿起锄头，打算寻找出路。", choices: [ {text:"走向城东", next:"farmer_east"}, {text:"去西门", next:"farmer_west"} ] },
-    farmer_food: { text: "你在市场废墟里找到一些粮食。", choices: [ {text:"带上粮食", next:"farmer_hide", effect: {addItem: "粮食"}}, {text:"分给其他难民", next:"farmer_reputation"} ] },
-    farmer_family: { text: "你想到家人可能躲在教堂附近。", choices: [ {text:"去教堂", next:"farmer_church"}, {text:"去河边找", next:"farmer_river"} ] },
+    farmer_tool: { text: "你拿起锄头，这不仅是工具，也是武器。你决定找个地方安顿下来。", choices: [ {text:"寻找废弃院落", next:"farmer_day1_start"} ] },
 
-    farmer_hide: { text: "你在一间破房子里休息。", choices: [ {text:"继续休息", next:"ending_farmer_caught"}, {text:"出去找出路", next:"farmer_west"} ] },
-    farmer_reputation: { text: "难民感激你，告诉你一条秘密小路。", choices: [ {text:"沿小路走", next:"ending_farmer_secret"}, {text:"不相信", next:"farmer_west"} ] },
+    // 农夫-生存循环 (Day 1-5)
+    farmer_day1_start: { text: "第一天。你找到一处带院子的废墟。虽然破败，但土地还在。", choices: [ {text:"翻整土地", next:"farmer_day1_work"}, {text:"加固围墙", next:"farmer_day1_wall"} ] },
+    farmer_day1_work: { text: "你出于本能翻整了土地，发现了一些被埋藏的红薯。", choices: [ {text:"烤红薯", next:"farmer_day1_night", effect: {health: 5, addItem: "红薯"}}, {text:"留作种子", next:"farmer_day1_night", effect: {sanity: 5}} ] },
+    farmer_day1_wall: { text: "你用碎砖加固了围墙，更有安全感了。", choices: [ {text:"休息", next:"farmer_day1_night", effect: {sanity: 5}} ] },
+    farmer_day1_night: { text: "夜晚，你睡在自己整理的角落里，听着外面的炮火声。", choices: [ {text:"睡觉", next:"farmer_day2_morning"} ] },
+
+    farmer_day2_morning: { text: "第二天。有人路过你的院子，看起来很饿。", choices: [ {text:"分给他红薯", next:"farmer_day2_share", condition: {hasItem: "红薯"}}, {text:"赶走他", next:"farmer_day2_shoo"}, {text:"邀请他帮忙", next:"farmer_day2_help"} ] },
+    farmer_day2_share: { text: "那人感激涕零，告诉你附近日军的巡逻规律。", choices: [ {text:"记下", next:"farmer_day2_night", effect: {sanity: 5}} ] },
+    farmer_day2_shoo: { text: "那人骂骂咧咧地走了。", choices: [ {text:"无视", next:"farmer_day2_night"} ] },
+    farmer_day2_help: { text: "那人是个泥瓦匠，帮你修补了屋顶。", choices: [ {text:"感谢", next:"farmer_day2_night"} ] },
+    farmer_day2_night: { text: "有了屋顶/围墙，今晚睡得安稳些。", choices: [ {text:"睡觉", next:"farmer_day3_morning"} ] },
+
+    farmer_day3_morning: { text: "第三天。一队日军征用劳工搬运物资。", choices: [ {text:"主动加入", next:"farmer_day3_labor"}, {text:"躲藏", next:"farmer_day3_hide"} ] },
+    farmer_day3_labor: { text: "你凭借力气干活，日军给了你一个饭团，没有杀你。", choices: [ {text:"吃掉", next:"farmer_day3_night", effect: {health: 10}}, {text:"藏起来", next:"farmer_day3_night", effect: {addItem: "饭团"}} ] },
+    farmer_day3_hide: { text: "你躲在地窖里，听着上面日军抓人的惨叫声。", choices: [ {text:"发抖", next:"farmer_day3_night", effect: {sanity: -10}} ] },
+    farmer_day3_night: { text: "你活过了又一天。", choices: [ {text:"睡觉", next:"farmer_day4_morning"} ] },
+
+    farmer_day4_morning: { text: "第四天。你在翻地时挖出了一箱金条。", choices: [ {text:"占为己有", next:"farmer_day4_gold", effect: {addItem: "金条"}}, {text:"埋回去", next:"farmer_day4_bury"} ] },
+    farmer_day4_gold: { text: "你从未见过这么多钱，心跳加速。", choices: [ {text:"藏好", next:"farmer_day4_night"} ] },
+    farmer_day4_bury: { text: "乱世黄金不如粮，你觉得这是祸害。", choices: [ {text:"继续种地", next:"farmer_day4_night", effect: {sanity: 5}} ] },
+    farmer_day4_night: { text: "明天必须离开了，战火越来越近。", choices: [ {text:"准备行囊", next:"farmer_day5_morning"} ] },
+
+    farmer_day5_morning: { text: "第五天。全城大搜捕开始了。", choices: [ {text:"带上金条逃跑", next:"farmer_day5_gold_run", condition: {hasItem: "金条"}}, {text:"带上锄头突围", next:"farmer_day5_fight"}, {text:"装作尸体", next:"farmer_day5_fake"} ] },
+    farmer_day5_gold_run: { text: "你背着沉重的金条跑不快，被日军追上。", choices: [ {text:"交出金条求饶", next:"ending_farmer_gold_death"}, {text:"反抗", next:"ending_farmer_gold_death"} ] },
+    farmer_day5_fight: { text: "你挥舞锄头击倒了一名士兵，抢夺了枪支。", choices: [ {text:"冲出城门", next:"ending_farmer_hero"} ] },
+    farmer_day5_fake: { text: "你躺在死人堆里，日军在补枪。", choices: [ {text:"屏住呼吸", next:"ending_farmer_survive"}, {text:"忍不住动了", next:"ending_farmer_caught"} ] },
+
+    ending_farmer_gold_death: { text: "系统：日军抢走了金条，并把你当做小偷枪毙（农夫结局11）", choices: [] },
+    ending_farmer_hero: { text: "系统：你杀出一条血路，虽然身负重伤但成功逃脱（农夫结局12）", choices: [] },
+    ending_farmer_survive: { text: "系统：你在尸体堆里躲过了搜查，夜晚爬出了城（农夫结局13）", choices: [] },
 
     farmer_east: { text: "东门守卫严密。", choices: [ {text:"尝试贿赂", next:"farmer_bribe", condition: {hasItem: "钱币"}}, {text:"寻找其他路", next:"farmer_west"} ] },
     farmer_bribe: { text: "你拿出仅有的铜钱。", choices: [ {text:"全部给出", next:"ending_farmer_east_escape"}, {text:"放弃", next:"farmer_west"} ] },
@@ -711,6 +766,32 @@ export const dialogues = {
     nun_secret_route: { text: "你记得教堂旁的墓地下有一条古老的地道。", choices: [ {text:"进入地道", next:"nun_tunnel"}, {text:"暂时不走", next:"nun_help_refugees"} ] },
     nun_tunnel: { text: "地道昏暗潮湿，你带着几名孩子前行。", choices: [ {text:"继续走", next:"ending_nun_tunnel_escape"}, {text:"返回教堂", next:"nun_help_refugees"} ] },
 
+    // 修女-信仰与救赎分支 (Day 1-5)
+    nun_day1_start: { text: "第一天。你决定留在教堂，用信仰守护这片净土。你需要安抚恐慌的难民。", choices: [ {text:"带领大家祈祷", next:"nun_day1_pray"}, {text:"分发圣餐", next:"nun_day1_food"} ] },
+    nun_day1_pray: { text: "祈祷声盖过了远处的炮火声，人们的心灵得到了片刻安宁。", choices: [ {text:"休息", next:"nun_day1_night", effect: {sanity: 10}} ] },
+    nun_day1_food: { text: "食物不多了，你把自己的那份也分了出去。", choices: [ {text:"忍受饥饿", next:"nun_day1_night", effect: {health: -5}} ] },
+    nun_day1_night: { text: "深夜，一名日军士兵闯入教堂忏悔室。", choices: [ {text:"倾听他的忏悔", next:"nun_day1_listen"}, {text:"把他赶出去", next:"nun_day1_reject"} ] },
+    nun_day1_listen: { text: "他哭诉着自己的罪行，临走时留下了一袋米。", choices: [ {text:"收下", next:"nun_day2_morning", effect: {addItem: "米袋"}} ] },
+    nun_day1_reject: { text: "他愤怒地离开了，你感到不安。", choices: [ {text:"祈祷", next:"nun_day2_morning"} ] },
+
+    nun_day2_morning: { text: "第二天。教堂外聚集了更多难民，但大门快被挤破了。", choices: [ {text:"打开大门接纳", next:"nun_day2_open"}, {text:"只接纳妇孺", next:"nun_day2_limit"} ] },
+    nun_day2_open: { text: "教堂里人满为患，卫生状况恶化。", choices: [ {text:"组织清洁", next:"nun_day2_clean"} ] },
+    nun_day2_limit: { text: "被拒之门外的男人们在咒骂。", choices: [ {text:"心怀愧疚", next:"nun_day2_clean", effect: {sanity: -5}} ] },
+    nun_day2_clean: { text: "你忙碌了一整天，精疲力尽。", choices: [ {text:"休息", next:"nun_day2_night", effect: {health: -5}} ] },
+    nun_day2_night: { text: "你梦见天使在哭泣。", choices: [ {text:"醒来", next:"nun_day3_morning"} ] },
+
+    nun_day3_morning: { text: "第三天。日军军官要求征用教堂。", choices: [ {text:"据理力争", next:"nun_day3_argue"}, {text:"顺从", next:"nun_day3_obey"} ] },
+    nun_day3_argue: { text: "你引用国际公约，军官暂时退却，但眼神凶狠。", choices: [ {text:"加强戒备", next:"nun_day3_night"} ] },
+    nun_day3_obey: { text: "难民们被赶到了院子里，许多人冻得瑟瑟发抖。", choices: [ {text:"分发衣物", next:"nun_day3_night"} ] },
+    nun_day3_night: { text: "你听到院子里传来惨叫声。", choices: [ {text:"冲出去查看", next:"nun_day3_check"}, {text:"不敢出去", next:"nun_day4_morning"} ] },
+    nun_day3_check: { text: "几名士兵正在施暴。", choices: [ {text:"阻止他们", next:"ending_nun_martyr"}, {text:"躲回屋内", next:"nun_day4_morning", effect: {sanity: -20}} ] },
+
+    nun_day4_morning: { text: "第四天。教堂已经不再安全。", choices: [ {text:"带领大家突围", next:"nun_escape_plan"}, {text:"死守圣坛", next:"nun_day4_altar"} ] },
+    nun_day4_altar: { text: "你和最后的信徒围坐在圣坛前。", choices: [ {text:"唱圣歌", next:"nun_day4_sing"} ] },
+    nun_day4_sing: { text: "圣歌声中，大门被撞开。", choices: [ {text:"闭上眼睛", next:"ending_nun_church_fall"} ] },
+
+    ending_nun_martyr: { text: "系统：你为了保护难民，被士兵残忍杀害，成为了殉道者（修女结局5）", choices: [] },
+
     nun_west: { text: "西门守卫发现了你们。", choices: [ {text:"请求通行", next:"nun_bribe_west"}, {text:"寻找小路", next:"nun_secret_path"} ] },
     nun_bribe_west: { text: "你用教堂的银十字架换取通行。", choices: [ {text:"通过西门", next:"ending_nun_west_escape"} ] },
     nun_secret_path: { text: "你找到一条小路通向西门外。", choices: [ {text:"偷偷离开", next:"ending_nun_west_escape"} ] },
@@ -730,7 +811,41 @@ export const dialogues = {
     hobo_ruin: { text: "你在废墟中翻找，发现一件破外套和一块干面包。", choices: [ {text:"穿上外套", next:"hobo_hide", effect: {addItem: "外套"}}, {text:"拿走面包", next:"hobo_hide", effect: {addItem: "面包"}} ] },
     hobo_hide: { text: "夜晚将至，你躲在破墙后。", choices: [ {text:"继续等待", next:"hobo_danger"}, {text:"出去看看", next:"hobo_street"} ] },
     hobo_danger: { text: "夜里有士兵搜查，听到他们的脚步声。", choices: [ {text:"屏住呼吸", next:"hobo_safe_night"}, {text:"逃跑", next:"ending_hobo_caught"} ] },
-    hobo_safe_night: { text: "士兵离开了，你活过了这一夜。", choices: [ {text:"第二天去教堂", next:"hobo_church"}, {text:"去河边", next:"hobo_river"} ] },
+    hobo_safe_night: { text: "士兵离开了，你活过了这一夜。但你意识到，这样躲藏不是长久之计。", choices: [ {text:"开始流浪生存", next:"hobo_day1_start"}, {text:"第二天去教堂", next:"hobo_church"}, {text:"去河边", next:"hobo_river"} ] },
+
+    // 流浪汉-极度生存挑战分支 (Day 1-5)
+    hobo_day1_start: { text: "第一天。你比任何人都适应这种混乱，因为你本就一无所有。你需要寻找更隐蔽的住所。", choices: [ {text:"废弃下水道口", next:"hobo_day1_sewer"}, {text:"富人区垃圾房", next:"hobo_day1_trash"} ] },
+    hobo_day1_sewer: { text: "这里虽然臭，但没人会来。", choices: [ {text:"安顿下来", next:"hobo_day1_night"} ] },
+    hobo_day1_trash: { text: "垃圾房里或许能找到好东西。", choices: [ {text:"翻找", next:"hobo_day1_find"} ] },
+    hobo_day1_find: { text: "你找到半瓶没喝完的红酒。", choices: [ {text:"喝掉暖身", next:"hobo_day1_night", effect: {sanity: 5, health: 2}}, {text:"留着", next:"hobo_day1_night", effect: {addItem: "红酒"}} ] },
+    hobo_day1_night: { text: "夜晚，寒风刺骨。你只有一件单薄的衣服。", choices: [ {text:"缩成一团", next:"hobo_day2_morning", effect: {health: -5}} ] },
+
+    hobo_day2_morning: { text: "第二天。你看到街上有死去的士兵。", choices: [ {text:"搜尸", next:"hobo_day2_loot"}, {text:"不敢靠近", next:"hobo_day2_hungry"} ] },
+    hobo_day2_loot: { text: "你扒下士兵的军大衣，还找到几颗子弹。", choices: [ {text:"穿上大衣", next:"hobo_day2_noon", effect: {addItem: "军大衣", health: 5}}, {text:"藏起子弹", next:"hobo_day2_noon", effect: {addItem: "子弹"}} ] },
+    hobo_day2_hungry: { text: "你饿得头晕眼花。", choices: [ {text:"吃树皮", next:"hobo_day2_noon", effect: {health: -2}} ] },
+    hobo_day2_noon: { text: "你遇到一只流浪狗，它嘴里叼着一块肉。", choices: [ {text:"抢夺", next:"hobo_day2_fight_dog"}, {text:"引诱", next:"hobo_day2_tame_dog"} ] },
+    hobo_day2_fight_dog: { text: "你被咬伤了，但抢到了肉。", choices: [ {text:"烤肉吃", next:"hobo_day2_night", effect: {health: 5}} ] },
+    hobo_day2_tame_dog: { text: "你分了一点食物给它，它似乎想跟着你。", choices: [ {text:"收留它", next:"hobo_day2_night", effect: {addItem: "流浪狗"}} ] },
+    hobo_day2_night: { text: "有了大衣（或狗），今晚暖和多了。", choices: [ {text:"睡觉", next:"hobo_day3_morning"} ] },
+
+    hobo_day3_morning: { text: "第三天。你发现有人在跟踪你。", choices: [ {text:"设伏", next:"hobo_day3_ambush"}, {text:"逃跑", next:"hobo_day3_run"} ] },
+    hobo_day3_ambush: { text: "你利用地形反杀了跟踪者，发现他是另一个想抢你大衣的流浪汉。", choices: [ {text:"搜身", next:"hobo_day3_loot_hobo"} ] },
+    hobo_day3_loot_hobo: { text: "他身上只有一张全家福。", choices: [ {text:"叹息", next:"hobo_day3_night", effect: {sanity: -5}} ] },
+    hobo_day3_run: { text: "你跑得气喘吁吁，甩掉了他。", choices: [ {text:"休息", next:"hobo_day3_night"} ] },
+    hobo_day3_night: { text: "这个城市正在死去，你也一样。", choices: [ {text:"坚持", next:"hobo_day4_morning"} ] },
+
+    hobo_day4_morning: { text: "第四天。你听说日军在招募劳工清理尸体，给饭吃。", choices: [ {text:"去报名", next:"hobo_day4_work"}, {text:"宁死不去", next:"hobo_day4_starve"} ] },
+    hobo_day4_work: { text: "你被带到江边搬运尸体，场面如同地狱。", choices: [ {text:"呕吐", next:"hobo_day4_noon", effect: {sanity: -20}} ] },
+    hobo_day4_noon: { text: "监工给了你两个饭团。", choices: [ {text:"狼吞虎咽", next:"hobo_day4_night", effect: {health: 20}} ] },
+    hobo_day4_starve: { text: "你饿得只能躺在地上不动。", choices: [ {text:"等死", next:"ending_hobo_starve"} ] },
+    hobo_day4_night: { text: "你看着满手的血腥，无法入睡。", choices: [ {text:"哭泣", next:"hobo_day5_morning"} ] },
+
+    hobo_day5_morning: { text: "第五天。劳工队要被集体处决了。", choices: [ {text:"装死", next:"hobo_day5_fake_death"}, {text:"反抗", next:"ending_hobo_resist"} ] },
+    hobo_day5_fake_death: { text: "你躺在尸体堆里，屏住呼吸。机枪扫射过后，你感到身上压着沉重的尸体。", choices: [ {text:"等待天黑", next:"ending_hobo_survive"} ] },
+
+    ending_hobo_starve: { text: "系统：你饿死在街头，无人收尸（流浪汉结局7）", choices: [] },
+    ending_hobo_resist: { text: "系统：你举起石头冲向日军，被乱枪打死（流浪汉结局8）", choices: [] },
+    ending_hobo_survive: { text: "系统：你从尸坑中爬出，成为了这座死城的幽灵（流浪汉结局9）", choices: [] },
 
     hobo_church: { text: "教堂内的修女见到你很可怜，给你一块面包。", choices: [ {text:"留下帮忙", next:"hobo_help"}, {text:"离开教堂", next:"hobo_river", effect: {addItem: "面包"}} ] },
     hobo_help: { text: "你帮忙打扫教堂，修女告诉你一条安全路。", choices: [ {text:"沿路逃生", next:"ending_hobo_safe"}, {text:"不离开", next:"ending_hobo_church"} ] },
@@ -762,6 +877,39 @@ export const dialogues = {
 
     driver_feed: { text: "你找来些干草喂马。突然听到外面传来枪声。", choices: [ {text:"迅速驾车离开", next:"driver_cart"}, {text:"躲进马厩", next:"driver_hide"} ] },
     driver_hide: { text: "你藏在马厩里，士兵搜查但未发现你。", choices: [ {text:"等他们离开后上路", next:"driver_cart"} ] },
+
+    // 车夫-城市地图探索分支 (Day 1-5)
+    driver_day1_start: { text: "第一天。你决定利用自己对地形的熟悉，在城中寻找生机。你需要先去哪里？", choices: [ {text:"去富人区接活", next:"driver_day1_rich"}, {text:"去贫民窟送货", next:"driver_day1_poor"} ] },
+    driver_day1_rich: { text: "富人们急于逃命，愿意出高价。", choices: [ {text:"接送一家人去码头", next:"driver_day1_dock", effect: {addItem: "金戒指"}}, {text:"接送官员去使馆区", next:"driver_day1_embassy", effect: {addItem: "通行证"}} ] },
+    driver_day1_dock: { text: "码头人山人海，你费了好大劲才挤进去。", choices: [ {text:"收钱离开", next:"driver_day1_night"} ] },
+    driver_day1_embassy: { text: "使馆区相对安全，官员给了你一张特别通行证。", choices: [ {text:"收下", next:"driver_day1_night"} ] },
+    driver_day1_poor: { text: "贫民窟的人们虽然没钱，但消息灵通。", choices: [ {text:"帮忙运送伤员", next:"driver_day1_info"} ] },
+    driver_day1_info: { text: "作为回报，他们告诉你一条避开日军的小道。", choices: [ {text:"记下路线", next:"driver_day1_night", effect: {addItem: "小道地图"}} ] },
+    driver_day1_night: { text: "晚上，你把马车藏在废弃仓库。", choices: [ {text:"给马喂料", next:"driver_day2_morning", effect: {removeItem: "干草"}}, {text:"自己休息", next:"driver_day2_morning"} ] },
+
+    driver_day2_morning: { text: "第二天。马儿饿得直叫。", choices: [ {text:"去寻找草料", next:"driver_day2_grass"}, {text:"去寻找水源", next:"driver_day2_water"} ] },
+    driver_day2_grass: { text: "你在公园草坪割了一些草。", choices: [ {text:"喂马", next:"driver_day2_noon", effect: {addItem: "干草"}} ] },
+    driver_day2_water: { text: "你在消防栓接了些水。", choices: [ {text:"喂马喝水", next:"driver_day2_noon"} ] },
+    driver_day2_noon: { text: "一名日军拦住了你的车。", choices: [ {text:"出示通行证", next:"driver_day2_pass", condition: {hasItem: "通行证"}}, {text:"低头哈腰", next:"driver_day2_bow"} ] },
+    driver_day2_pass: { text: "日军看了一眼放行了。", choices: [ {text:"赶紧走", next:"driver_day2_night"} ] },
+    driver_day2_bow: { text: "日军征用了你的马车运送弹药。", choices: [ {text:"忍痛交出", next:"driver_day2_lost_cart"}, {text:"反抗", next:"ending_driver_caught"} ] },
+    driver_day2_lost_cart: { text: "你失去了马车，只能步行。", choices: [ {text:"沮丧", next:"driver_day2_night", effect: {sanity: -20}} ] },
+    driver_day2_night: { text: "没有了马车，你只能睡在街角。", choices: [ {text:"睡觉", next:"driver_day3_morning"} ] },
+
+    driver_day3_morning: { text: "第三天。如果你还有马车，可以尝试冲卡。", choices: [ {text:"尝试冲西门", next:"driver_day3_rush", condition: {hasItem: "通行证"}}, {text:"继续在城内苟活", next:"driver_day3_stay"} ] },
+    driver_day3_rush: { text: "你驾车冲向西门，挥舞着通行证。", choices: [ {text:"加速", next:"ending_driver_success"} ] },
+    driver_day3_stay: { text: "你决定再等等。", choices: [ {text:"寻找食物", next:"driver_day3_food"} ] },
+    driver_day3_food: { text: "你找到半袋米。", choices: [ {text:"带走", next:"driver_day3_night", effect: {addItem: "米袋"}} ] },
+    driver_day3_night: { text: "夜里，你听到马儿不安的嘶鸣。", choices: [ {text:"安抚", next:"driver_day4_morning"} ] },
+
+    driver_day4_morning: { text: "第四天。日军开始屠杀牲畜。", choices: [ {text:"把马放生", next:"driver_day4_free"}, {text:"藏好马匹", next:"driver_day4_hide"} ] },
+    driver_day4_free: { text: "你解开缰绳，马儿跑远了。", choices: [ {text:"独自逃生", next:"driver_day5_morning"} ] },
+    driver_day4_hide: { text: "你试图把马藏进屋里，但被发现了。", choices: [ {text:"被捕", next:"ending_driver_caught"} ] },
+
+    driver_day5_morning: { text: "第五天。你独自一人混在难民堆里。", choices: [ {text:"前往安全区", next:"ending_driver_survive"} ] },
+
+    ending_driver_success: { text: "系统：凭借通行证和马车，你奇迹般地冲出了封锁线（车夫结局6）", choices: [] },
+    ending_driver_survive: { text: "系统：你失去了马车，但保住了性命（车夫结局7）", choices: [] },
 
     driver_church: { text: "教堂里的修女看到你的马车，请你帮忙运送难民。", choices: [ {text:"答应", next:"driver_help_church"}, {text:"拒绝", next:"driver_cart"} ] },
     driver_help_church: { text: "你载着难民前往安全区。", choices: [ {text:"驶向西门", next:"driver_west"}, {text:"驶向河边", next:"driver_river"} ] },

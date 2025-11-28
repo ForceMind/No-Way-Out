@@ -215,3 +215,67 @@ button:disabled {
     #game-container { width: 95%; height: 90vh; }
     .identity-btn { width: 45%; }
 }
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2.5em;
+        letter-spacing: 2px;
+    }
+
+    h2 {
+        font-size: 1.5em;
+    }
+
+    button {
+        padding: 12px 20px;
+        font-size: 1em;
+        width: 90%; /* 按钮在移动端更宽，方便点击 */
+        margin: 8px 0;
+    }
+
+    #identity-screen, #game-container {
+        width: 95%;
+        padding: 10px;
+    }
+
+    #identity-list {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .identity-btn {
+        width: 100%;
+        margin: 5px 0;
+    }
+
+    #status-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        font-size: 0.9em;
+    }
+
+    #status-bar div {
+        margin-bottom: 5px;
+    }
+
+    #dialogue-area {
+        min-height: 150px; /* 移动端稍微减小高度 */
+        font-size: 1em;
+    }
+
+    #choices-area {
+        flex-direction: column;
+    }
+
+    .choice-btn {
+        width: 100%;
+        margin: 5px 0;
+    }
+    
+    /* 模态框适配 */
+    .modal-content {
+        width: 90%;
+        padding: 20px;
+    }
+}
