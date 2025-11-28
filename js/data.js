@@ -438,7 +438,7 @@ export const dialogues = {
 
     ending_teacher_safe: { text: "系统：你留在教堂，最后被日军坑杀（教师结局1）", choices: [] },
     ending_teacher_west_escape: { text: "系统：你被士兵当场射杀（教师结局2）", choices: [] },
-    ending_teacher_river_escape: { text: "系统：你顺利划船进入长江，不幸翻船被淹死（教师结局3）", choices: [] },
+    ending_teacher_river_escape: { text: "系统：你顺利划船进入长江，被日军汽艇扫射沉没（教师结局3）", choices: [] },
     ending_teacher_caught: { text: "系统：你被士兵当场击毙（教师结局4）", choices: [] }
 },
 医生: {
@@ -499,7 +499,7 @@ export const dialogues = {
 
     ending_doctor_safe: { text: "系统：你留在教堂救人，最后被日军坑杀（医生结局1）", choices: [] },
     ending_doctor_west_escape: { text: "系统：药品被扔在地上，你被射杀（医生结局2）", choices: [] },
-    ending_doctor_river_escape: { text: "系统：逃跑途中翻船了，你被淹死了（医生结局3）", choices: [] },
+    ending_doctor_river_escape: { text: "系统：逃跑途中被日军汽艇扫射，你中弹身亡（医生结局3）", choices: [] },
     ending_doctor_caught: { text: "系统：你被巡逻士兵抓住并射杀（医生结局4）", choices: [] }
 },
 商人: {
@@ -543,7 +543,7 @@ export const dialogues = {
     merch_day5_morning: { text: "第五天。你一无所有，但还活着。", choices: [ {text:"混入难民队伍", next:"ending_merchant_survive"} ] },
 
     ending_merchant_rich_death: { text: "系统：你抱着金条被日军追上刺死，财物被抢走（商人结局9）", choices: [] },
-    ending_merchant_survive: { text: "系统：你失去了所有财富，作为乞丐活了下来（商人结局10）", choices: [] },
+    ending_merchant_survive: { text: "系统：你失去了所有财富，作为乞丐在街头冻饿而死（商人结局10）", choices: [] },
 
     merchant_escape_plan: { text: "你拿出一些金银首饰，打算用来贿赂士兵。", choices: [ {text:"去东门", next:"merchant_east"}, {text:"去西门", next:"merchant_west"} ] },
     merchant_east: { text: "东门士兵有些松懈。", choices: [ {text:"拿出金银贿赂", next:"ending_merchant_east_escape", condition: {hasItem: "金银"}}, {text:"改走河边", next:"merchant_river"} ] },
@@ -598,8 +598,8 @@ export const dialogues = {
     farmer_day5_fake: { text: "你躺在死人堆里，日军在补枪。", choices: [ {text:"屏住呼吸", next:"ending_farmer_survive"}, {text:"忍不住动了", next:"ending_farmer_caught"} ] },
 
     ending_farmer_gold_death: { text: "系统：日军抢走了金条，并把你当做小偷枪毙（农夫结局11）", choices: [] },
-    ending_farmer_hero: { text: "系统：你杀出一条血路，虽然身负重伤但成功逃脱（农夫结局12）", choices: [] },
-    ending_farmer_survive: { text: "系统：你在尸体堆里躲过了搜查，夜晚爬出了城（农夫结局13）", choices: [] },
+    ending_farmer_hero: { text: "系统：你杀出一条血路逃出城门，但最终因失血过多倒在荒野（农夫结局12）", choices: [] },
+    ending_farmer_survive: { text: "系统：你在尸体堆里躲过了搜查，夜晚爬出城后踩中地雷身亡（农夫结局13）", choices: [] },
 
     farmer_east: { text: "东门守卫严密。", choices: [ {text:"尝试贿赂", next:"farmer_bribe", condition: {hasItem: "钱币"}}, {text:"寻找其他路", next:"farmer_west"} ] },
     farmer_bribe: { text: "你拿出仅有的铜钱。", choices: [ {text:"全部给出", next:"ending_farmer_east_escape"}, {text:"放弃", next:"farmer_west"} ] },
@@ -674,13 +674,13 @@ export const dialogues = {
     agent_day5_sewer: { text: "你在下水道躲了一整天，直到外面枪声平息。", choices: [ {text:"等待黎明", next:"ending_agent_survive"} ] },
 
     ending_agent_hero: { text: "系统：你与日军大佐同归于尽，你的名字将永垂不朽（地下党员结局9）", choices: [] },
-    ending_agent_survive: { text: "系统：你成功活了下来，继续在黑暗中战斗（地下党员结局10）", choices: [] },
+    ending_agent_survive: { text: "系统：你在黑暗中战斗至最后一刻，最终被捕牺牲（地下党员结局10）", choices: [] },
 
     agent_church: { text: "你顺利抵达教堂，此处比较安全。", choices: [ {text:"寻找联系人", next:"agent_safehouse2"}, {text:"躲在此处", next:"ending_agent_caught"} ] },
     agent_safehouse: { text: "安全屋内，同志们正在策划突袭。", choices: [ {text:"加入突袭", next:"ending_agent_action"}, {text:"转移情报", next:"ending_agent_win"} ] },
     agent_safehouse2: { text: "你在伤员中找到联系人，并知道了一个安全屋。", choices: [ {text:"告诉敌人", next:"ending_agent_hanjian"}, {text:"躲在此处", next:"ending_agent_caught"}, {text:"前往寻找", next:"agent_safehouse"} ] },
 
-    ending_agent_win: { text: "系统：你成功将情报送出，组织的行动取得胜利（地下党员结局1）", choices: [] },
+    ending_agent_win: { text: "系统：你成功将情报送出，随后为了掩护同志撤离而牺牲（地下党员结局1）", choices: [] },
     ending_agent_fail: { text: "系统：你销毁了情报，错失良机，自己被日军抓获并砍头（地下党员结局2）", choices: [] },
     ending_agent_river_escape: { text: "系统：你不了解水性，船翻了，你被淹死了（地下党员结局3）", choices: [] },
     ending_agent_east_escape: { text: "系统：你用贿赂逃出东门，全是日军，你被射杀了（地下党员结局4）", choices: [] },
@@ -731,7 +731,7 @@ export const dialogues = {
     orphan_day5_escape: { text: "因为身材瘦小，你们成功钻过了栅栏。", choices: [ {text:"重见天日", next:"ending_orphan_survive"} ] },
     orphan_day5_search: { text: "你们迷路了。", choices: [ {text:"继续找", next:"ending_orphan_lost"} ] },
 
-    ending_orphan_survive: { text: "系统：你和小石头逃出了南京城，在战火中相依为命活了下来（孤儿结局5）", choices: [] },
+    ending_orphan_survive: { text: "系统：你和小石头逃出了南京城，但在前往安全区的路上死于瘟疫（孤儿结局5）", choices: [] },
     ending_orphan_lost: { text: "系统：你们在下水道中迷失方向，最终饿死（孤儿结局6）", choices: [] },
 
     orphan_refugee: { text: "你跟在一群难民身后，他们讨论西门是否能逃出去。", choices: [ {text:"跟去西门", next:"orphan_west"}, {text:"离开队伍去河边", next:"orphan_river"} ] },
@@ -799,10 +799,10 @@ export const dialogues = {
     nun_river: { text: "河边有一条小船。难民请求你带他们一起走。", choices: [ {text:"同意带他们", next:"ending_nun_river_escape"}, {text:"只带孩子", next:"ending_nun_river_escape"} ] },
 
     ending_nun_church_fall: { text: "系统：你坚持留在教堂，最终与难民一同被日军坑杀（修女结局1）", choices: [] },
-    ending_nun_west_escape: { text: "系统：你离开后遇上日军被凌辱（修女结局2）", choices: [] },
+    ending_nun_west_escape: { text: "系统：你离开后遇上日军，受尽凌辱而死（修女结局2）", choices: [] },
     ending_nun_river_escape: { text: "系统：你乘船被日军飞机炸毁（修女结局3）", choices: [] },
     ending_nun_tunnel_escape: { text: "系统：你带孩子掉入大坑溺亡（修女结局4）", choices: [] },
-    ending_nun_caught: { text: "系统：你被士兵抓住并被凌辱（修女结局5）", choices: [] },
+    ending_nun_caught: { text: "系统：你被士兵抓住，受尽折磨而死（修女结局5）", choices: [] },
     ending_nun_caught2: { text: "系统：你和难民被士兵用机枪全部射杀（修女结局6）", choices: [] }
 },
 流浪汉: {
@@ -845,7 +845,7 @@ export const dialogues = {
 
     ending_hobo_starve: { text: "系统：你饿死在街头，无人收尸（流浪汉结局7）", choices: [] },
     ending_hobo_resist: { text: "系统：你举起石头冲向日军，被乱枪打死（流浪汉结局8）", choices: [] },
-    ending_hobo_survive: { text: "系统：你从尸坑中爬出，成为了这座死城的幽灵（流浪汉结局9）", choices: [] },
+    ending_hobo_survive: { text: "系统：你爬出尸坑，但因伤口感染，几天后在痛苦中死去（流浪汉结局9）", choices: [] },
 
     hobo_church: { text: "教堂内的修女见到你很可怜，给你一块面包。", choices: [ {text:"留下帮忙", next:"hobo_help"}, {text:"离开教堂", next:"hobo_river", effect: {addItem: "面包"}} ] },
     hobo_help: { text: "你帮忙打扫教堂，修女告诉你一条安全路。", choices: [ {text:"沿路逃生", next:"ending_hobo_safe"}, {text:"不离开", next:"ending_hobo_church"} ] },
@@ -908,8 +908,8 @@ export const dialogues = {
 
     driver_day5_morning: { text: "第五天。你独自一人混在难民堆里。", choices: [ {text:"前往安全区", next:"ending_driver_survive"} ] },
 
-    ending_driver_success: { text: "系统：凭借通行证和马车，你奇迹般地冲出了封锁线（车夫结局6）", choices: [] },
-    ending_driver_survive: { text: "系统：你失去了马车，但保住了性命（车夫结局7）", choices: [] },
+    ending_driver_success: { text: "系统：你冲出封锁线后，被城外的流寇劫杀（车夫结局6）", choices: [] },
+    ending_driver_survive: { text: "系统：你失去了马车，最终在难民营中病死（车夫结局7）", choices: [] },
 
     driver_church: { text: "教堂里的修女看到你的马车，请你帮忙运送难民。", choices: [ {text:"答应", next:"driver_help_church"}, {text:"拒绝", next:"driver_cart"} ] },
     driver_help_church: { text: "你载着难民前往安全区。", choices: [ {text:"驶向西门", next:"driver_west"}, {text:"驶向河边", next:"driver_river"} ] },
