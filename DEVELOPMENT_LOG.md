@@ -45,3 +45,12 @@
 - 对应提交主题：`fix: recover safely from corrupt saves and unavailable storage`。
 - 远端状态：本地版本已保留，GitHub 网络配置仍未确认应用。
 - 下一步：整理 M1 完成状态和运行说明，然后进入 M2。
+
+## 2026-10-04 · M1-5：阶段验收与运行说明
+
+- 修改：README 更新实际身份、已启用的音频、目录、启动和验证命令；开发方案标记 M1 完成，M2 开始。
+- 验收：M1-4 的 19 项实际单元测试与完整浏览器回归通过；当前 618 个节点、865 个选项、无错误跳转。编辑器条件往返、JSON 拒绝、引用保护、损坏记录及失败存储反馈均已验证。
+- 剩余事项：23 项内容警告由 M2/M6 逐项处理；Firefox、WebKit、真实手机和远端同步尚未验证。
+- 对应提交主题：`docs: complete M1 acceptance and refresh development instructions`。
+- 远端状态：所有步骤有本地提交；网络设置生效后再同步，不宣称已经更新 GitHub。
+- 下一步：M2 核心规则、原子状态转移、版本化存档和历史记录。
