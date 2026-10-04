@@ -139,3 +139,7 @@
 - 新要求：每身份总选项与有效多选行动均为 200–500，至少 6 个可到达正式结局。基线表与实施顺序纳入 CONTENT_EXPANSION_PLAN.md；不把单选翻页计为有效选择。
 - 验证：原有剧情校验仍为 0 错误、0 待处理警告；市民满足规模，其余 11 条需扩写。
 - 提交主题：`docs: define per-identity expansion requirements and record successful push`。
+
+## E1 · 长篇验收口径修订
+
+用户确认每次通关必须实际选择 200–500 次。撤销按分支选项总数验收的解释，改为 12 身份六章连续长篇、每次 208 次决策、至少六种结局；旧剧情明确归类为旧版短篇。详见 CONTENT_EXPANSION_PLAN.md。此步为文档修订，尚未宣称长篇代码完成。
