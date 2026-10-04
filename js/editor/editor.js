@@ -143,7 +143,7 @@
         choicesEditor.appendChild(div);
     }
 
-    window.addChoice = () => {appendChoice({ text: '新选项', next: '', effect: {} });queuePersist();};
+    window.addChoice = () => {appendChoice({ id:`choice_${crypto.randomUUID()}`, text: '新选项', next: '', effect: {} });queuePersist();};
     window.removeChoice = index => choicesEditor.children[index]?.remove();
 
     window.saveCurrentNode = () => {

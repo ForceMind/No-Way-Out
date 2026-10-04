@@ -1,74 +1,52 @@
-# 无归之城 (No Way Out)
+# 无归之城 · No Way Out
 
-一款基于文本的生存冒险游戏，背景设定在1937年的南京。
+以 1937 年南京为背景的浏览器文字冒险，包含十二身份经典剧情，以及市民三日生存章节「灯火未熄」。内容版本 0.3.0。
 
-## 游戏特色
-- **多重身份**：体验市民、难民、学生、医生等 12 种身份的独特视角。
-- **分支剧情**：你的每一个选择都会影响最终的结局。
-- **生存要素**：管理你的生命值和物品栏，收集关键道具以存活。
-- **沉浸体验**：打字机文本效果与深色沉浸式UI。
+## 游玩
 
-## 如何运行
-由于游戏使用了现代 JavaScript 模块 (ES Modules)，直接双击 `index.html` 可能会因为浏览器的安全策略（CORS）而无法加载。
-
-**推荐方式：**
-1. **使用 VS Code Live Server 插件**：
-   - 在 VS Code 中打开 `index.html`。
-   - 右键点击编辑器内容，选择 "Open with Live Server"。
-
-2. **使用 Python (如果你已安装)**：
-   - 在项目根目录下打开终端。
-   - 运行 `python -m http.server`。
-   - 在浏览器访问 `http://localhost:8000`。
-
-## 自定义音乐与音效
-背景音乐已启用，文件为 `assets/audio/BGM.mp3`。替换音乐时保持该路径，或更新 `js/game.js` 中的 `bgmUrl`。点击和打字音效由 Web Audio 合成，不需要另外的音效文件。
-
-游戏设置可调整音乐与音效音量。浏览器存储不可用时，音量在本次运行中仍生效，并提示无法保存。
-
-## 文件结构
-- `index.html`: 游戏入口。
-- `css/style.css`: 样式表。
-- `js/game.js`: 游戏核心引擎。
-- `js/data.js`: 剧情文本与数据。
-- `assets/`: 资源文件夹。
-- `js/core/`: 共用剧情校验与存储保护。
-- `js/editor/`: 编辑草稿模型与字段保留。
-- `scripts/`: 命令行剧情检查。
-- `tests/`: 单元及浏览器回归检查。
-
-## 开发计划与验证
-
-- 完整方案：DEVELOPMENT_PLAN.md。
-- 逐步开发及实际验证记录：DEVELOPMENT_LOG.md。
-
-在仓库根目录运行（Node.js 24）：
+在仓库目录运行静态服务器：
 
 ```bash
-node scripts/validate-stories.mjs
+python3 -m http.server 8000
+```
+
+在浏览器打开本机服务器的 index.html；editor.html 为作者编辑器。ES Modules 需要 HTTP，直接双击文件可能无法加载。游戏无需 npm、构建服务或应用密钥。
+
+- 十二身份分支剧情，生命、理智、物品和选择历史。
+- 三日章节主动从市民开局进入，管理食物、饮水、时段与疲劳，准备决定转移、相守或困守。规则与已测路线见 [SURVIVAL_GUIDE.md](SURVIVAL_GUIDE.md)。
+- 自动档继续、三个手动档、剧情回顾、结局收藏。
+- 点击文字、点击「显示全文」或使用空格跳过；设置文字速度、字号、音量及减少动画。
+
+存档在当前站点的 localStorage 保存，换域名或端口不会自动搬迁。旧 nw_save 迁移后保留原记录；格式版本为 2，接受内容 0.2.0/0.3.0。未来版本或损坏自动档保留原记录，可将新的进度保存到手动档。
+
+## 创作
+
+编辑器支持条件与效果、草稿自动恢复、切换保护、撤销/重做、ID/文字搜索、引用查看、独立预览、检查后导入 JSON、完整 JSON 备份和当前身份 JS 导出。导出的 `<身份>.js` 可替换 js/stories/ 中的对应文件；请定期导出完整备份。
+
+背景音乐文件为 assets/audio/BGM.mp3；点击和逐字音效由 Web Audio 合成。浏览器不支持音效时可继续游玩。Google 字体为可选资源，不可用时使用本地衬线字体。
+
+## 验证与发布包
+
+```bash
+node scripts/validate-stories.mjs --verbose
 node --test --test-isolation=none tests/unit/*.test.mjs
-```
-
-剧情校验遇到缺失跳转、格式或规则错误时返回非零状态；`--verbose` 展示待核对警告，`--json` 输出结构化结果。
-
-浏览器回归使用 Python Playwright，自动启动并关闭本地静态服务器：
-
-```bash
 python3 tests/e2e/smoke.py
+python3 scripts/build-release.py
+python3 tests/e2e/release.py
 ```
 
-默认使用系统 Chromium；可通过 `--browser-path` 指定浏览器路径。当前云镜像已预装所需工具。
+当前 82 项具名单元测试通过；633 节点、900 选项、108 结束节点（102 正式、6 归档），无剧情错误和待处理警告。Chromium 已完成十二身份代表路线、两个修通分支、三日章节三类结局、编辑器往返和四屏宽检查。测试依赖、覆盖范围与失败产物见 [tests/README.md](tests/README.md)。
 
-## 当前开发状态
+生成的 dist/no-way-out 可直接放到静态站点根目录或项目子目录；dist/no-way-out-0.3.0.zip 为发布包，release.json 包含文件哈希。发布路径已在本地验证，尚未部署到线上站点。CI 配置位于 .github/workflows/check.yml，远端结果需实际触发后确认。
 
-M1 稳定性阶段已完成：农夫三个开局选项可继续，编辑器删除与保存保留条件和草稿，无效 JSON 与被引用节点删除受到保护，损坏存档和存储异常可恢复。
+## 目录与记录
 
-最近验证：82 项单元测试通过；剧情检查无错误，当前 633 个节点、900 个选项。待处理警告为 0；六个旧结局已明确归档，详情见 [CONTENT_REVIEW.md](CONTENT_REVIEW.md)。
+- js/game.js：页面协调；js/core/：规则、状态、存档、时间与校验。
+- js/data.js、js/stories/：十二身份与新章节；js/ui/：阅读、设置与收藏。
+- js/editor/：作者界面、候选数据与草稿会话；scripts/、tests/：检查和打包。
+- [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md)：完整方案与里程碑；[DEVELOPMENT_LOG.md](DEVELOPMENT_LOG.md)：每步修改、验证和提交。
+- [CONTENT_REVIEW.md](CONTENT_REVIEW.md)：原有问题的逐项处理；[ENDING_CATALOG.md](ENDING_CATALOG.md)：结局目录；[RELEASE_NOTES.md](RELEASE_NOTES.md)：版本兼容与交付。
 
-M2 已实现原子规则、选择历史、版本化自动档与三个手动档，以及保留原记录的旧档迁移；M3 已接入槽位管理、自动档继续、文字速度/字号、跳过、历史回顾、减少动画与结局收藏。每一步都会更新开发记录并独立提交。
+开发分支为 codex/no-way-out-development，每一步均有文档和独立本地提交。当前云环境阻止 GitHub HTTPS；已保存 github.com 放行草稿，待环境设置中保存并发布后同步。尚未推送，不保证未推送提交在新云任务中自动恢复。
 
-编辑器支持条件编辑、搜索引用、独立预览、草稿恢复、撤销重做、JSON 导入备份，以及当前身份 JS 导出；导出的文件可替换对应 `js/stories/<身份>.js`。请保留完整 JSON 备份。
-
-市民开局可进入「三日生存：灯火未熄」。时间、食物、饮水、疲劳和准备情况决定三个结局；规则与已测路线见 [SURVIVAL_GUIDE.md](SURVIVAL_GUIDE.md)。内容版本为 0.3.0，旧存档仍可读取。
-
-十二身份各一条经典路线、两个修通分支及新章节三个结局已通过 Chromium 通关；全部结局目录见 [ENDING_CATALOG.md](ENDING_CATALOG.md)。
+Firefox、WebKit、真实手机、玩家平衡试玩、文学润色和史实专家审校仍是后续工作。

@@ -33,7 +33,7 @@
 
         #toolbar { padding: 10px; background: #fff; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
         * {box-sizing:border-box;} #toolbar {flex-wrap:wrap;gap:8px;} #sidebar {flex-shrink:0;} .identity-item,.node-item {display:block;width:100%;text-align:left;border:0;font:inherit;min-height:36px;} .identity-item {color:white;background:#333;} .node-item {background:#ddd;} #sidebar input {width:100%;padding:10px;} #draft-status {color:#365b36;padding:8px;} #node-references {line-height:1.8;padding:10px;background:#eee;margin-bottom:12px;} dialog {max-height:85vh;overflow:auto;width:min(620px,calc(100% - 24px));border:1px solid #555;} dialog::backdrop {background:#0008;} dialog button {padding:10px;margin:5px;min-height:44px;} #preview-choices button {display:block;} :focus-visible {outline:3px solid #ad5b19;outline-offset:2px;}
-        @media(max-width:700px) {body {height:auto;min-height:100vh;flex-direction:column;} #sidebar {width:100%;max-height:35vh;} #toolbar,#editor-area {padding:12px;} #toolbar h2 {font-size:1.2rem;} #toolbar button {margin:4px;} #editor-area {overflow:visible;} }
+        @media(max-width:700px) {body {height:auto;min-height:100vh;flex-direction:column;} #sidebar {width:100%;max-height:none;} #identity-list {max-height:100px;overflow:auto;flex:none;} #node-list {flex:none;max-height:150px;overflow:auto;} #sidebar h3,#sidebar label,#sidebar input {flex:none;} #toolbar,#editor-area {padding:12px;} #toolbar h2 {font-size:1.2rem;} #toolbar button {margin:4px;} #editor-area {overflow:visible;} }
     </style>
 </head>
 <body>

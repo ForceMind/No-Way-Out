@@ -45,6 +45,7 @@ def run_smoke(repository, base, browser_path):
         try:
             context = browser.new_context(viewport={"width": 1440, "height": 1000}, accept_downloads=True)
             context.set_default_timeout(15000)
+            context.tracing.start(screenshots=True,snapshots=True,sources=True)
 
             def observe(page):
                 page.on("pageerror", lambda error: page_errors.append(str(error)))
@@ -200,7 +201,9 @@ def run_smoke(repository, base, browser_path):
                 exported = json.loads(export_path.read_text())
             assert len(exported) == 12
             assert exported["citizen"]["start"]["text"] == changed_text
-            assert exported["citizen"]["start"]["choices"][-1] == {"text": "验证选项", "next": "home", "effect": {"health": -1}}
+            created=exported["citizen"]["start"]["choices"][-1]
+            assert created["id"].startswith("choice_")
+            assert {key:value for key,value in created.items() if key!="id"} == {"text": "验证选项", "next": "home", "effect": {"health": -1}}
             print("PASS: editor loads stories, saves in memory and exports valid edited JSON", flush=True)
 
             editor.locator("#node-list").get_by_text("shelter_wait", exact=True).click()
@@ -476,6 +479,22 @@ def run_smoke(repository, base, browser_path):
                 print(f"PASS: complete classic route {route['identity']} -> {route['ending']}",flush=True)
             classic_context.close()
 
+            protected_context=browser.new_context()
+            protected=protected_context.new_page()
+            observe(protected)
+            future_auto=json.dumps({"saveVersion":999,"contentVersion":"future","state":{}})
+            protected.add_init_script(f"localStorage.setItem('nw_save_v2_auto',{json.dumps(future_auto)}); localStorage.setItem('nw_preferences',JSON.stringify({{speed:0,fontSize:20,reducedMotion:true}}));")
+            protected.goto(base,wait_until="networkidle")
+            protected.locator("#start-btn").click()
+            protected.locator("#identity-list").get_by_role("button",name="普通市民",exact=True).click()
+            protected.locator("#confirm-identity").click()
+            protected.locator("#choices-area").get_by_role("button",name="留在家中",exact=True).click()
+            assert protected.evaluate("localStorage.getItem('nw_save_v2_auto')")==future_auto
+            protected.locator("#save-btn").click()
+            assert protected.evaluate("JSON.parse(localStorage.getItem('nw_save_v2_manual-1')).state.currentNode")=="home"
+            protected_context.close()
+            print("PASS: incompatible automatic saves remain intact while new play can save manually",flush=True)
+
             assert not page_errors, page_errors
             font_hosts = ("fonts.googleapis.com", "fonts.gstatic.com")
 
@@ -498,9 +517,19 @@ def run_smoke(repository, base, browser_path):
                 print("OPTIONAL: Google font requests unavailable under current network policy; system serif fallback used", flush=True)
             if any(urlparse(entry["url"]).path == "/favicon.ico" for entry in http_errors):
                 print("OPTIONAL REPOSITORY ISSUE: editor default favicon.ico is absent (HTTP 404)", flush=True)
+            context.tracing.stop()
             context.close()
         except Exception:
             print("BROWSER ERRORS:", page_errors, console_errors, flush=True)
+            results=Path(__file__).resolve().parents[2]/"test-results"
+            results.mkdir(exist_ok=True)
+            (results/"browser-errors.json").write_text(json.dumps({"pageErrors":page_errors,"consoleErrors":console_errors,"failedRequests":failed_requests,"httpErrors":http_errors},ensure_ascii=False,indent=2))
+            for number,active_context in enumerate(browser.contexts):
+                for page_number,active_page in enumerate(active_context.pages):
+                    try: active_page.screenshot(path=str(results/f"failure-{number}-{page_number}.png"),timeout=3000)
+                    except Exception: pass
+                try: active_context.tracing.stop(path=str(results/f"trace-{number}.zip"))
+                except Exception: pass
             raise
         finally:
             browser.close()

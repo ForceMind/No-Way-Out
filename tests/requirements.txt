@@ -1,0 +1,2 @@
+# Development checks only; the published game has no runtime dependencies.
+playwright==1.62.0

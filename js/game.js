@@ -302,6 +302,11 @@ class Game {
     }
 
     autoSave() {
+        const existing=loadSlot('auto',storyData,{migrate:false});
+        if (!existing.ok && existing.reason !== 'missing' && existing.reason !== 'storage-unavailable') {
+            if (!this.storageWarningShown) this.showNotification('原自动档无法读取，已保留；请将当前游戏保存到手动档');
+            this.storageWarningShown=true; return;
+        }
         const result = saveSlot('auto', this.state, storyData);
         if (!result.ok && !this.storageWarningShown) this.showNotification('自动存档无法保存，当前游戏仍可继续');
         this.storageWarningShown = !result.ok;
