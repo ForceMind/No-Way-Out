@@ -132,3 +132,10 @@
 - 远端状态：环境状态仍为 network disabled，原 GitHub CONNECT 403 阻断未解除；本地全部里程碑有独立提交，尚未推送或部署。
 - 备份：生成 /workspace/library-files/no-way-out-development.bundle，包含本地开发分支；校验并从该文件独立克隆核对 HEAD，用于远端受阻时保存全部提交。此验证不等于云环境新任务恢复已验证。
 - 剩余：GitHub 同步与远端 CI；Firefox/WebKit/真实手机、玩家平衡、史实专家和文学审校。当前满足方案第 11 节本地工程验收，不把这些未运行事项描述为已完成。
+
+## 2026-10-04 · E0：远端同步与人物线规模
+
+- 推送：原 14 次开发提交已通过既有 HTTPS 代理同步 origin/codex/no-way-out-development，Git 设置了跟踪分支；此前 CONNECT 阻断已在实际命令中解除。
+- 新要求：每身份总选项与有效多选行动均为 200–500，至少 6 个可到达正式结局。基线表与实施顺序纳入 CONTENT_EXPANSION_PLAN.md；不把单选翻页计为有效选择。
+- 验证：原有剧情校验仍为 0 错误、0 待处理警告；市民满足规模，其余 11 条需扩写。
+- 提交主题：`docs: define per-identity expansion requirements and record successful push`。
