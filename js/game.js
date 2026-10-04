@@ -1,5 +1,6 @@
 import { identities, storyData } from './data.js';
 import { ParticleSystem, AudioManager } from './effects.js';
+import { readJSON, writeJSON, readVolume, decodeLegacySave } from './core/save-store.js';
 
 class Game {
     constructor() {
@@ -136,14 +137,12 @@ class Game {
         this.renderIdentityList();
         this.showScreen('title');
         
-        const savedVol = localStorage.getItem('nw_volume');
-        if (savedVol) {
-            const vol = JSON.parse(savedVol);
-            this.audio.bgmVolume = vol.bgm;
-            this.audio.sfxVolume = vol.sfx;
-            if(this.elements.bgmSlider) this.elements.bgmSlider.value = vol.bgm;
-            if(this.elements.sfxSlider) this.elements.sfxSlider.value = vol.sfx;
-        }
+        const volume = readVolume();
+        this.audio.bgmVolume = volume.value.bgm;
+        this.audio.sfxVolume = volume.value.sfx;
+        if(this.elements.bgmSlider) this.elements.bgmSlider.value = volume.value.bgm;
+        if(this.elements.sfxSlider) this.elements.sfxSlider.value = volume.value.sfx;
+        if (!volume.ok) this.showNotification('音量设置无法读取，本次使用默认音量');
     }
 
     setupEventListeners() {
@@ -194,14 +193,14 @@ class Game {
             this.elements.bgmSlider.addEventListener('input', (e) => {
                 this.audio.bgmVolume = e.target.value;
                 this.audio.bgm.volume = this.audio.bgmVolume;
-                localStorage.setItem('nw_volume', JSON.stringify({bgm: this.audio.bgmVolume, sfx: this.audio.sfxVolume}));
+                this.saveVolume();
             });
         }
 
         if(this.elements.sfxSlider) {
             this.elements.sfxSlider.addEventListener('input', (e) => {
                 this.audio.sfxVolume = e.target.value;
-                localStorage.setItem('nw_volume', JSON.stringify({bgm: this.audio.bgmVolume, sfx: this.audio.sfxVolume}));
+                this.saveVolume();
             });
         }
         
@@ -230,18 +229,31 @@ class Game {
             state: this.state,
             timestamp: new Date().getTime()
         };
-        localStorage.setItem('nw_save', JSON.stringify(saveData));
-        alert('游戏已保存');
+        const result = writeJSON('nw_save', saveData);
+        alert(result.ok ? '游戏已保存' : '无法写入存档，请检查浏览器存储设置；当前游戏可继续');
+    }
+
+    saveVolume() {
+        const result = writeJSON('nw_volume', { bgm: this.audio.bgmVolume, sfx: this.audio.sfxVolume });
+        if (!result.ok) this.showNotification('音量设置无法保存，本次设置仍然生效');
     }
 
     loadGame() {
-        const saveStr = localStorage.getItem('nw_save');
-        if (!saveStr) {
+        const record = readJSON('nw_save');
+        if (!record.ok) {
+            alert('存档无法读取，原记录已保留；你可以开始新游戏');
+            return;
+        }
+        if (record.value === null) {
             alert('没有找到存档');
             return;
         }
-        const saveData = JSON.parse(saveStr);
-        this.state = saveData.state;
+        const decoded = decodeLegacySave(record.value, storyData);
+        if (!decoded.ok) {
+            alert('存档内容无效，原记录已保留；你可以开始新游戏');
+            return;
+        }
+        this.state = decoded.state;
         
         this.showScreen('game');
         this.updateStatus();

@@ -30,6 +30,7 @@ def run_smoke(repository, base, browser_path):
     console_errors = []
     failed_requests = []
     http_errors = []
+    dialogs = []
     proxy_server = os.environ.get("HTTPS_PROXY") or os.environ.get("HTTP_PROXY")
     launch_options = {"headless": True}
     if browser_path:
@@ -47,7 +48,7 @@ def run_smoke(repository, base, browser_path):
                 page.on("requestfailed", lambda request: failed_requests.append({"url": request.url, "failure": request.failure}))
                 page.on("response", lambda response: http_errors.append({"url": response.url, "status": response.status}) if response.status >= 400 else None)
                 page.on("console", lambda message: console_errors.append({"text": message.text, "url": message.location.get("url", "")}) if message.type == "error" else None)
-                page.on("dialog", lambda dialog: dialog.accept())
+                page.on("dialog", lambda dialog: (dialogs.append(dialog.message), dialog.accept()))
 
             page = context.new_page()
             observe(page)
@@ -230,6 +231,42 @@ def run_smoke(repository, base, browser_path):
             expect(editor.locator("#editor-error")).to_contain_text("start、relative_escape")
             assert export_editor() == valid_export
             print("PASS: editor deletion preserves drafts/conditions/quotes and invalid saves or referenced deletions leave data unchanged", flush=True)
+
+            for key, raw, expected_message in [
+                ("nw_volume", "{broken", None),
+                ("nw_save", "{broken", "存档无法读取"),
+                ("nw_save", json.dumps({"state": {"currentIdentity": "absent"}}), "存档内容无效"),
+            ]:
+                isolated = browser.new_context()
+                broken = isolated.new_page()
+                observe(broken)
+                broken.add_init_script(f"localStorage.setItem({json.dumps(key)}, {json.dumps(raw)});")
+                broken.goto(base, wait_until="networkidle")
+                expect(broken.locator("#title-screen")).to_be_visible()
+                if expected_message:
+                    broken.locator("#load-btn-title").click()
+                    assert expected_message in dialogs[-1]
+                    expect(broken.locator("#title-screen")).to_be_visible()
+                else:
+                    expect(broken.locator("#bgm-volume")).to_have_value("0.5")
+                    expect(broken.locator("#sfx-volume")).to_have_value("0.5")
+                assert broken.evaluate("key => localStorage.getItem(key)", key) == raw
+                isolated.close()
+
+            isolated = browser.new_context()
+            full = isolated.new_page()
+            observe(full)
+            full.add_init_script("Storage.prototype.setItem = function() { throw new DOMException('Storage full', 'QuotaExceededError'); };")
+            full.goto(base, wait_until="networkidle")
+            full.locator("#start-btn").click()
+            full.locator("#identity-list").get_by_role("button", name="普通市民", exact=True).click()
+            full.locator("#confirm-identity").click()
+            full.wait_for_function("!document.querySelector('#dialogue-text').classList.contains('cursor')")
+            full.locator("#save-btn").click()
+            assert "无法写入存档" in dialogs[-1]
+            expect(full.locator("#game-container")).to_be_visible()
+            isolated.close()
+            print("PASS: corrupt saves/settings remain intact and quota failures do not report successful saves", flush=True)
 
             assert not page_errors, page_errors
             font_hosts = ("fonts.googleapis.com", "fonts.gstatic.com")
