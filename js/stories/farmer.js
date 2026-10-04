@@ -3,6 +3,9 @@ export const farmerData = {
 
     farmer_tool: { text: "你拿起锄头，这不仅是工具，也是武器。你决定找个地方安顿下来。", choices: [ {text:"寻找废弃院落", next:"farmer_day1_start"} ] },
 
+    farmer_food: { text: "粮铺的门已经被砸开，空柜台上只剩碎米。墙外还有一些野菜，教堂的修女则在招人帮工。你需要先找到能撑过今天的食物。", choices: [ {text:"挖些野菜后寻找住处", next:"farmer_day1_start", effect: {addItem: "野菜"}}, {text:"去教堂帮工换食物", next:"farmer_church"} ] },
+    farmer_family: { text: "家人借住的小院已经空了，门边留下一个包袱和几枚铜钱。邻居说，他们可能跟着村民去了河边，也有人被带往东门。你只能沿着这些线索寻找。", choices: [ {text:"去河边打听家人的消息", next:"farmer_river"}, {text:"带上铜钱去东门打听", next:"farmer_east", effect: {addItem: "钱币"}}, {text:"先找住处，再继续寻找", next:"farmer_day1_start"} ] },
+
     // 农夫-生存循环 (Day 1-5)
     farmer_day1_start: { text: "第一天。你找到一处带院子的废墟。虽然破败，但土地还在。", choices: [ {text:"翻整土地", next:"farmer_day1_work"}, {text:"加固围墙", next:"farmer_day1_wall"} ] },
     farmer_day1_work: { text: "你出于本能翻整了土地，发现了一些被埋藏的红薯。", choices: [ {text:"烤红薯", next:"farmer_day1_night", effect: {health: 5, addItem: "红薯"}}, {text:"留作种子", next:"farmer_day1_night", effect: {sanity: 5}} ] },

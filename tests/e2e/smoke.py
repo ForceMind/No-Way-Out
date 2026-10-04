@@ -63,6 +63,27 @@ def run_smoke(repository, base, browser_path):
                 assert data["stories"][identity["id"]]["start"]["text"], identity["id"]
             print("PASS: browser loads all 12 identity/story modules", flush=True)
 
+            for choice_text, target, item in [
+                ("带上锄头防身", "farmer_tool", "锄头"),
+                ("寻找食物", "farmer_food", None),
+                ("去找家人", "farmer_family", None),
+            ]:
+                farmer = context.new_page()
+                observe(farmer)
+                farmer.goto(base, wait_until="networkidle")
+                farmer.locator("#start-btn").click()
+                farmer.locator("#identity-list").get_by_role("button", name="农夫", exact=True).click()
+                farmer.locator("#confirm-identity").click()
+                farmer.wait_for_function("!document.querySelector('#dialogue-text').classList.contains('cursor')")
+                farmer.locator("#choices-area").get_by_role("button", name=choice_text, exact=True).click()
+                expect(farmer.locator("#dialogue-text")).to_have_text(data["stories"]["farmer"][target]["text"])
+                farmer.wait_for_function("!document.querySelector('#dialogue-text').classList.contains('cursor')")
+                expect(farmer.locator("#inventory-display .item-tag")).to_have_count(1 if item else 0)
+                if item:
+                    expect(farmer.locator("#inventory-display")).to_have_text(item)
+                farmer.close()
+            print("PASS: all three farmer opening choices reach valid nodes with correct inventory", flush=True)
+
             def wait_node(key):
                 expect(page.locator("#dialogue-text")).to_have_text(data["stories"]["citizen"][key]["text"])
                 page.wait_for_function("!document.querySelector('#dialogue-text').classList.contains('cursor')")
