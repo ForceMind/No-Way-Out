@@ -152,6 +152,15 @@
 | ending_orphan_caught | 系统：你被抓去做了苦力，最终累死（孤儿结局3） | 经典 |
 | ending_orphan_candy | 系统：你吃着糖，在战火中露出了一丝微笑，随后被流弹击中（孤儿结局4） | 经典 |
 | ending_orphan_escape | 系统：你逃出了城，被一户农家收养（孤儿结局5） | 经典 |
+| campaign_orphan_ending_names | 没有姓名的路 · 被认出的名字 | 经典 |
+| campaign_orphan_ending_water | 没有姓名的路 · 水壶没有倒空 | 经典 |
+| campaign_orphan_ending_coat | 没有姓名的路 · 补好的袖口 | 经典 |
+| campaign_orphan_ending_note | 没有姓名的路 · 口信到门口 | 经典 |
+| campaign_orphan_ending_bed | 没有姓名的路 · 没有独睡的一夜 | 经典 |
+| campaign_orphan_ending_route | 没有姓名的路 · 会合的白点 | 经典 |
+| campaign_orphan_ending_guard | 没有姓名的路 · 相互照应 | 经典 |
+| campaign_orphan_ending_return | 没有姓名的路 · 带回未竟之事 | 经典 |
+| campaign_orphan_ending_loss | 没有姓名的路 · 代价与失散 | 经典 |
 
 ## 修女
 
@@ -164,6 +173,15 @@
 | ending_nun_sacrifice | 系统：你用生命保护了难民，你的精神永存（修女结局3） | 经典 |
 | ending_nun_survivor | 系统：你活了下来，但内心充满了愧疚（修女结局4） | 经典 |
 | ending_nun_rape | 系统：你遭受了非人的折磨后死去（修女结局5） | 经典 |
+| campaign_nun_ending_bandage | 门内门外 · 按需分出的布 | 经典 |
+| campaign_nun_ending_registry | 门内门外 · 日期与名字 | 经典 |
+| campaign_nun_ending_water | 门内门外 · 留下的刻痕 | 经典 |
+| campaign_nun_ending_privacy | 门内门外 · 一幅能合上的帘 | 经典 |
+| campaign_nun_ending_food | 门内门外 · 写下代领的人 | 经典 |
+| campaign_nun_ending_handoff | 门内门外 · 交到下一双手 | 经典 |
+| campaign_nun_ending_guard | 门内门外 · 相互照应 | 经典 |
+| campaign_nun_ending_return | 门内门外 · 带回未竟之事 | 经典 |
+| campaign_nun_ending_loss | 门内门外 · 代价与失散 | 经典 |
 
 ## 流浪汉
 

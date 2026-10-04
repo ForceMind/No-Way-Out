@@ -1,6 +1,8 @@
 import { createState, normalizeState, stateErrors } from './state.js';
 import { checkCondition } from './conditions.js';
 import {beginSurvival,advanceTime,SURVIVAL_RULESET} from './time-system.js';
+import {createCampaignState} from './campaign.js';
+import {describeNode} from './narrative.js';
 import { applyEffects } from './choice-effects.js';
 
 export { createState };
@@ -20,9 +22,13 @@ export function transition(state, selection, stories, { now = Date.now } = {}) {
     if (choice.effect?.startSurvival && (state.ruleset === SURVIVAL_RULESET || !Object.hasOwn(nodes,'city3_ending_loss'))) return {ok:false,reason:'无法重复开始生存章节'};
     const condition = checkCondition(choice.condition, state);
     if (!condition.allowed) return { ok: false, reason: condition.reason };
+    if(choice.effect?.startCampaign && (state.ruleset!=='classic' || choice.next!==`campaign_${state.currentIdentity}_start`)) return {ok:false,reason:'无法重复开始完整长篇'};
+    if(state.ruleset==='campaign-v1' && (nodes[choice.next].campaign?.step !== state.campaign.decisions+1 || (nodes[choice.next].choices.length===0 && state.campaign.decisions+1!==208))) return {ok:false,reason:'长篇章节不可跳过或提前结束'};
     const result = applyEffects(normalizeState(state), choice.effect);
     if (!result.ok) return result;
     let next = result.state;
+    if (choice.effect?.startCampaign) next={...createCampaignState(state.currentIdentity),history:structuredClone(state.history)};
+    if(state.ruleset==='campaign-v1') next.campaign.decisions++;
     if (choice.effect?.startSurvival) next=beginSurvival(next);
     if (choice.effect?.advanceTime) {
         const advanced=advanceTime(next,choice.effect.advanceTime);
@@ -37,7 +43,8 @@ export function transition(state, selection, stories, { now = Date.now } = {}) {
     next.history.push({
         choiceId: choice.id ?? `${state.currentIdentity}:${state.currentNode}:${selection.choiceIndex}`,
         identity: state.currentIdentity, from: state.currentNode, to: next.currentNode,
-        text: choice.text, nodeText: node.text, timestamp: now()
+        text: choice.text, nodeText: describeNode(node,state), timestamp: now(),
+        ...(choice.outcome?{outcome:choice.outcome}:{}),...(state.ruleset==='campaign-v1'?{campaignDecision:true}:{})
     });
     const nextErrors = stateErrors(next, stories);
     if (nextErrors.length) return { ok: false, reason: nextErrors[0] };

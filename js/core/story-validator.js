@@ -47,6 +47,13 @@ export function validateStories(stories, identities, { initialItems = {} } = {})
             if (node.choices.length === 0) stats.endings++;
             if (node.archived !== undefined && typeof node.archived !== 'boolean') issue(errors,'archive',path,'archived 必须为布尔值');
             if (node.archived && (!nonempty(node.archiveReason) || node.choices.length)) issue(errors,'archive',path,'归档必须是无选项节点，并填写归档原因');
+            if(node.variants!==undefined) {
+                if(!Array.isArray(node.variants)) issue(errors,'variants',path,'variants 必须为数组');
+                else for(const variant of node.variants) {
+                    if(!object(variant)||!nonempty(variant.text)) issue(errors,'variants',path,'条件叙事必须包含文本');
+                    for(const message of conditionErrors(variant?.condition)) issue(errors,'variants',path,message);
+                }
+            }
             const choiceIds = new Set();
             node.choices.forEach((choice, index) => {
                 stats.choices++;
@@ -59,6 +66,7 @@ export function validateStories(stories, identities, { initialItems = {} } = {})
                     if (!nonempty(choice.id) || choiceIds.has(choice.id)) issue(errors,'choice-id',choicePath,'选项 ID 必须非空，且在节点内唯一');
                     choiceIds.add(choice.id);
                 }
+                if(choice.outcome!==undefined&&!nonempty(choice.outcome)) issue(errors,'outcome',choicePath,'行动后果必须为非空文本');
                 if (choice.strenuous !== undefined && typeof choice.strenuous !== 'boolean') issue(errors,'choice',choicePath,'strenuous 必须为布尔值');
                 if (choice.visibility !== undefined && !['locked','secret'].includes(choice.visibility)) issue(errors,'choice',choicePath,'visibility 必须为 locked 或 secret');
                 if (!nonempty(choice.next) || !Object.hasOwn(nodes, choice.next) || !object(nodes[choice.next])) {

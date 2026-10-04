@@ -16,6 +16,7 @@ function reach(identity, target, item) {
         seen.add(key);
         if (state.currentNode === target && state.inventory.includes(item)) return state;
         storyData[identity][state.currentNode].choices.forEach((choice, choiceIndex) => {
+            if(choice.next.startsWith('campaign_')) return;
             const result = transition(state, { nodeKey: state.currentNode, choiceIndex }, storyData, {now:()=>1});
             if (result.ok) queue.push(result.state);
         });

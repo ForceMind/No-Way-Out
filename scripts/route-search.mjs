@@ -10,7 +10,7 @@ export function findRoute(identity,{target,classicOnly=true,maxStates=20000}={})
         const node=storyData[identity][state.currentNode];
         if(target ? state.currentNode===target : node.choices.length===0 && !node.archived) return {identity,ending:state.currentNode,steps};
         node.choices.forEach((choice,choiceIndex)=>{
-            if(classicOnly && choice.next.startsWith('city3_'))return;
+            if(classicOnly && (choice.next.startsWith('city3_')||choice.next.startsWith('campaign_')))return;
             const result=transition(state,{nodeKey:state.currentNode,choiceIndex},storyData,{now:()=>1});
             if(result.ok)queue.push({state:result.state,steps:[...steps,{nodeKey:state.currentNode,choiceIndex,text:choice.text,next:result.state.currentNode}]});
         });

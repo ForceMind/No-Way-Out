@@ -1,3 +1,6 @@
+import {buildExpansion} from './stories/expansions/build.js';
+import {orphanExpansion} from './stories/expansions/orphan.js';
+import {nunExpansion} from './stories/expansions/nun.js';
 import { citizenData } from './stories/citizen.js';
 import { refugeeData } from './stories/refugee.js';
 import { studentData } from './stories/student.js';
@@ -40,3 +43,9 @@ export const identities = [
     { id: 'hobo', name: '流浪汉', desc: '你无处可去，只能在废墟间寻找残羹冷炙。' },
     { id: 'driver', name: '车夫', desc: '你拉着破车，载着希望与恐惧穿行于城中。' }
 ];
+
+for(const [id,profile] of Object.entries({orphan:orphanExpansion,nun:nunExpansion})) {
+ const expansion=buildExpansion(id,profile);
+ Object.assign(storyData[id],expansion.nodes);
+ storyData[id].start.choices.push(expansion.entry);
+}
