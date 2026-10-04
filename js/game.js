@@ -1,8 +1,11 @@
 import { identities, storyData } from './data.js';
 import { ParticleSystem, AudioManager } from './effects.js';
-import { writeJSON, readVolume, saveSlot, loadSlot } from './core/save-store.js';
+import { writeJSON, readVolume, saveSlot, loadSlot, listSlots } from './core/save-store.js';
 import { createState, transition } from './core/engine.js';
 import { checkCondition } from './core/conditions.js';
+import { readEndings, collectEnding } from './ui/endings.js';
+import { Typewriter } from './ui/typewriter.js';
+import { readPreferences, savePreferences } from './ui/preferences.js';
 
 class Game {
     constructor() {
@@ -42,7 +45,8 @@ class Game {
         
         this.particles = new ParticleSystem();
 
-        this.typewriterTimeout = null;
+        this.writer = new Typewriter();
+        this.preferences = readPreferences(undefined, matchMedia("(prefers-reduced-motion: reduce)").matches).value;
         this.init();
     }
 
@@ -78,18 +82,17 @@ class Game {
     }
 
     ensureAudioContext() {
-        if (!this.audio.manager.context) {
-            this.audio.manager.init();
-        }
-        if (this.audio.manager.context.state === 'suspended') {
-            this.audio.manager.context.resume();
-        }
-        return this.audio.manager.context;
+        try {
+            if (!this.audio.manager.context) this.audio.manager.init();
+            const ctx = this.audio.manager.context;
+            if (ctx?.state === 'suspended') ctx.resume().catch(() => {});
+            return ctx;
+        } catch { return null; }
     }
 
     playClickSFX() {
         const ctx = this.ensureAudioContext();
-        
+        if (!ctx || Number(this.audio.sfxVolume) === 0) return;
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         
@@ -110,7 +113,7 @@ class Game {
     playTypingSFX() {
         // Very short, high pitched click for typing
         const ctx = this.ensureAudioContext();
-        
+        if (!ctx || Number(this.audio.sfxVolume) === 0) return;
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         
@@ -139,27 +142,53 @@ class Game {
         if(this.elements.bgmSlider) this.elements.bgmSlider.value = volume.value.bgm;
         if(this.elements.sfxSlider) this.elements.sfxSlider.value = volume.value.sfx;
         if (!volume.ok) this.showNotification('音量设置无法读取，本次使用默认音量');
+        this.applyPreferences();
+        document.getElementById('continue-btn').hidden = !loadSlot('auto', storyData, {migrate:false}).ok;
     }
 
     setupEventListeners() {
+        document.querySelectorAll('dialog').forEach(dialog => dialog.addEventListener('keydown', event => {
+            if (event.key !== 'Tab') return;
+            const controls = [...dialog.querySelectorAll('button:not(:disabled),input,select,[tabindex="0"]')].filter(control => control.getClientRects().length);
+            const first=controls[0], last=controls.at(-1);
+            if (event.shiftKey && document.activeElement === first) {event.preventDefault();last?.focus();}
+            else if (!event.shiftKey && document.activeElement === last) {event.preventDefault();first?.focus();}
+        }));
         // 全局点击事件，用于尽早激活 AudioContext，减少音效延迟
-        const unlockAudio = () => {
-            const ctx = this.ensureAudioContext();
-            if (ctx.state === 'suspended') {
-                ctx.resume().then(() => {
-                    console.log("AudioContext resumed successfully");
-                    // 移除监听器，避免重复调用
-                    document.removeEventListener('click', unlockAudio);
-                    document.removeEventListener('touchstart', unlockAudio);
-                });
+        const unlockAudio = () => { this.ensureAudioContext(); };
+        document.addEventListener('click', unlockAudio, {once:true});
+        document.addEventListener('touchstart', unlockAudio, {once:true});
+        document.getElementById('endings-btn').addEventListener('click', () => {
+            const list=document.getElementById('endings-list'); list.replaceChildren();
+            const result=readEndings();
+            if (!result.ok || !result.valid) list.textContent='收藏记录无法读取，原记录已保留。';
+            else if (!result.value.length) list.textContent='尚未记录结局。';
+            else for (const entry of result.value) { const p=document.createElement('p');p.textContent=entry.title;list.append(p); }
+            document.getElementById('endings-modal').showModal();
+        });
+        document.getElementById('close-endings').addEventListener('click', () => document.getElementById('endings-modal').close());
+        document.getElementById('continue-btn').addEventListener('click', () => this.loadGame('auto'));
+        for (const id of ['saves-btn-title', 'saves-btn-game']) document.getElementById(id).addEventListener('click', () => this.openSaves());
+        document.getElementById('close-saves').addEventListener('click', () => document.getElementById('save-modal').close());
+        document.getElementById('history-btn').addEventListener('click', () => this.openHistory());
+        document.getElementById('close-history').addEventListener('click', () => document.getElementById('history-modal').close());
+        document.getElementById('skip-text').addEventListener('click', () => this.writer.skip());
+        this.elements.dialogueText.addEventListener('click', () => this.writer.skip());
+        document.addEventListener('keydown', event => {
+            if (event.code === 'Space' && this.writer.finish && !document.querySelector('dialog[open]') && !['BUTTON','INPUT','SELECT','TEXTAREA'].includes(event.target.tagName)) {
+                event.preventDefault(); this.writer.skip();
             }
-        };
-        document.addEventListener('click', unlockAudio);
-        document.addEventListener('touchstart', unlockAudio);
+        });
+        for (const id of ['reading-speed','reading-size','reduced-motion']) document.getElementById(id).addEventListener('change', () => {
+            this.preferences = {speed:Number(document.getElementById('reading-speed').value),fontSize:Number(document.getElementById('reading-size').value),reducedMotion:document.getElementById('reduced-motion').checked};
+            this.applyPreferences();
+            if (!savePreferences(this.preferences).ok) this.showNotification('设置无法保存，本次设置仍生效');
+        });
 
         document.getElementById('start-btn').addEventListener('click', () => {
             this.playClickSFX();
             this.playBGM();
+            this.resetIdentitySelection();
             this.showScreen('identity');
         });
 
@@ -213,12 +242,59 @@ class Game {
         });
     }
 
-    toggleSettings(show) {
-        if(this.elements.settingsModal) {
-            this.elements.settingsModal.style.display = show ? 'flex' : 'none';
-            this.playClickSFX();
-        }
+    applyPreferences() {
+        document.getElementById('reading-speed').value = this.preferences.speed;
+        document.getElementById('reading-size').value = this.preferences.fontSize;
+        document.getElementById('reduced-motion').checked = this.preferences.reducedMotion;
+        document.documentElement.style.setProperty('--reading-size', `${this.preferences.fontSize}px`);
+        document.body.classList.toggle('reduced-motion', this.preferences.reducedMotion);
+        this.particles.setReducedMotion(this.preferences.reducedMotion);
     }
+
+    toggleSettings(show) {
+        if (show) this.elements.settingsModal.showModal();
+        else this.elements.settingsModal.close();
+        this.playClickSFX();
+    }
+
+    openHistory() {
+        const list = document.getElementById('history-list');
+        list.replaceChildren();
+        if (!this.state.history.length) list.textContent = '还没有做出选择。';
+        for (const entry of this.state.history) {
+            const section = document.createElement('section');
+            const passage = document.createElement('p'); passage.textContent = entry.nodeText;
+            const action = document.createElement('p'); action.textContent = `你的选择：${entry.text}`; action.className = 'history-choice';
+            section.append(passage, action); list.append(section);
+        }
+        document.getElementById('history-modal').showModal();
+    }
+
+    openSaves() {
+        const list = document.getElementById('save-slots'); list.replaceChildren();
+        for (const result of listSlots(storyData)) {
+            const row = document.createElement('section'); row.className = 'save-slot';
+            const label = result.slot === 'auto' ? '自动存档' : `手动存档 ${result.slot.slice(-1)}`;
+            const info = document.createElement('p');
+            const identity = result.ok ? identities.find(item => item.id === result.state.currentIdentity)?.name : '';
+            info.textContent = `${label} · ${result.ok ? `${identity} · ${new Date(result.record.savedAt).toLocaleString()} · ${result.state.history.length} 次选择` : result.reason === 'missing' ? '空' : '无法读取，原记录已保留'}`;
+            row.append(info);
+            const load = document.createElement('button'); load.textContent = '读取'; load.disabled = !result.ok; load.dataset.slot = result.slot;
+            load.addEventListener('click', () => {this.loadGame(result.slot); document.getElementById('save-modal').close();}); row.append(load);
+            if (result.slot !== 'auto') {
+                const save = document.createElement('button'); save.textContent = '保存到此处'; save.dataset.saveSlot = result.slot;
+                save.disabled = !this.state.currentIdentity || !this.state.currentNode;
+                save.addEventListener('click', () => {
+                    if (result.reason !== 'missing' && !confirm('覆盖此存档？原记录将被替换。')) return;
+                    this.saveGame(result.slot); this.openSavesRefresh();
+                }); row.append(save);
+            }
+            list.append(row);
+        }
+        document.getElementById('save-modal').showModal();
+    }
+
+    openSavesRefresh() { document.getElementById('save-modal').close(); this.openSaves(); }
 
     saveGame(slot = 'manual-1') {
         const result = saveSlot(slot, this.state, storyData);
@@ -312,6 +388,7 @@ class Game {
         }
 
         this.state.currentNode = nodeKey; // Store key, not object, for saving
+        this.renderHeading(node);
         
         // 清空选项
         this.elements.choicesArea.innerHTML = '';
@@ -325,6 +402,7 @@ class Game {
 
     // Helper to render node from object (used in loadGame)
     renderNode(node) {
+         this.renderHeading(node);
          // 清空选项
          this.elements.choicesArea.innerHTML = '';
         
@@ -337,25 +415,14 @@ class Game {
 
     typewriter(text, callback) {
         const element = this.elements.dialogueText;
-        element.textContent = '';
-        element.classList.add('cursor');
-        
-        let i = 0;
-        if (this.typewriterTimeout) clearTimeout(this.typewriterTimeout);
-
-        const type = () => {
-            if (i < text.length) {
-                element.textContent += text.charAt(i);
-                // Play sound every other character to avoid too much noise, or every character if slow enough
-                if (i % 2 === 0) this.playTypingSFX(); 
-                i++;
-                this.typewriterTimeout = setTimeout(type, 30); // 打字速度
-            } else {
-                element.classList.remove('cursor');
-                if (callback) callback();
-            }
-        };
-        type();
+        const skip = document.getElementById('skip-text');
+        skip.hidden = this.preferences.speed === 0;
+        this.writer.start(text, {
+            delay:this.preferences.reducedMotion ? 0 : this.preferences.speed,
+            render:(value, active) => {element.textContent=value; element.classList.toggle('cursor', active);},
+            tick:index => {if (index % 2 === 0) this.playTypingSFX();},
+            complete:() => {skip.hidden=true; callback?.();}
+        });
     }
 
     renderChoices(choices) {
@@ -371,10 +438,12 @@ class Game {
 
         const nodeKey = this.state.currentNode;
         choices.forEach((choice, choiceIndex) => {
-            if (!checkCondition(choice.condition, this.state).allowed) return;
+            const condition = checkCondition(choice.condition, this.state);
+            if (!condition.allowed && choice.visibility !== 'locked') return;
 
             const btn = document.createElement('button');
-            btn.textContent = choice.text;
+            btn.textContent = condition.allowed ? choice.text : `${choice.text}（${condition.reason}）`;
+            btn.disabled = !condition.allowed;
             btn.classList.add('choice-btn', 'fade-in');
             btn.addEventListener('click', () => this.handleChoice({ nodeKey, choiceIndex }));
             this.elements.choicesArea.appendChild(btn);
@@ -397,6 +466,24 @@ class Game {
         this.playNode(this.state.currentNode);
     }
 
+    renderHeading(node) {
+        const ending = node.choices.length === 0;
+        const identity = identities.find(item => item.id === this.state.currentIdentity)?.name;
+        const heading = document.getElementById('chapter-heading');
+        heading.replaceChildren();
+        const title = document.createElement('h2');
+        title.textContent = ending ? node.ending?.title ?? `${identity} · 结局` : `${identity}${node.chapter ? ` · ${node.chapter}` : ''}${node.location ? ` · ${node.location}` : ''}`;
+        heading.append(title);
+        if (ending) {
+            const summary = document.createElement('p');
+            summary.textContent = `经历 ${this.state.history.length} 次选择 · 生命 ${this.state.health} · 理智 ${this.state.sanity}`;
+            heading.append(summary);
+            const last = this.state.history.slice(-3);
+            for (const entry of last) {const p=document.createElement('p');p.textContent=`关键经历：${entry.text}`;heading.append(p);}
+            if (!collectEnding({identity:this.state.currentIdentity,node:this.state.currentNode,title:title.textContent,at:Date.now()}).ok) this.showNotification('结局收藏无法保存，原记录已保留');
+        }
+    }
+
     updateStatus() {
         this.elements.healthDisplay.textContent = `生命：${this.state.health}`;
         if (this.elements.sanityDisplay) {
@@ -412,20 +499,10 @@ class Game {
     }
 
     showNotification(msg) {
-        // 简单的通知实现，可以扩展
-        console.log(msg); 
-        // 可以在界面上显示一个临时的浮层
-        const note = document.createElement('div');
-        note.textContent = msg;
-        note.style.position = 'absolute';
-        note.style.top = '10px';
-        note.style.right = '10px';
-        note.style.background = '#333';
-        note.style.padding = '10px';
-        note.style.border = '1px solid #fff';
-        note.style.animation = 'fadeIn 0.5s, fadeOut 0.5s 2.5s forwards';
-        document.body.appendChild(note);
-        setTimeout(() => note.remove(), 3000);
+        console.log(msg);
+        const note = document.createElement('div'); note.textContent=msg;
+        document.getElementById('notifications').append(note);
+        setTimeout(() => note.remove(), 4000);
     }
 
     showScreen(screenName) {

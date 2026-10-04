@@ -1,297 +1,62 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap');
-
-:root {
-    --bg-color: #0a0a0a;
-    --text-color: #e0e0e0;
-    --accent-color: #8b0000; /* 深红色，代表血与火 */
-    --secondary-color: #4a4a4a;
-    --font-main: 'Noto Serif SC', serif;
+:root { --bg-color:#0a0a0a; --text-color:#e0e0e0; --accent-color:#8b0000; --font-main:'Noto Serif SC',serif; --reading-size:20px; }
+* { box-sizing:border-box; }
+html { background:var(--bg-color); color:var(--text-color); font-family:var(--font-main); }
+body { margin:0; min-height:100dvh; padding:24px 16px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.background-effect { position:fixed; inset:0; background:radial-gradient(circle,#191919,#000); pointer-events:none; z-index:-1; }
+#title-screen { text-align:center; }
+h1 { font-size:clamp(2.5rem,7vw,4rem); color:#ae3939; letter-spacing:5px; margin:.5em 0; }
+h2 { font-size:1.6rem; border-bottom:1px solid #444; padding-bottom:12px; }
+button, select, input { font:inherit; }
+button { background:#161616; color:var(--text-color); border:1px solid #666; padding:12px 20px; min-height:44px; cursor:pointer; margin:6px; border-radius:3px; }
+button:hover { background:#591616; border-color:#b45a5a; }
+button:disabled { opacity:.5; cursor:not-allowed; }
+:focus-visible { outline:3px solid #e2b681; outline-offset:3px; }
+[hidden] { display:none !important; }
+#identity-screen { width:min(100%,1000px); flex-direction:column; align-items:center; text-align:center; }
+#intro-text,#identity-description { line-height:1.8; }
+#identity-description { padding:16px; width:100%; color:#ccc; border-left:3px solid #8b0000; margin:16px 0; }
+#identity-description:empty { display:none; }
+#identity-list { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; }
+.identity-btn { min-width:120px; }
+#game-container { width:min(100%,900px); flex-direction:column; background:#101010; border:1px solid #444; padding:20px; position:relative; }
+#status-bar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; border-bottom:1px solid #444; padding-bottom:12px; color:#ccc; }
+#inventory { display:flex; flex-wrap:wrap; gap:8px; }
+#inventory-display { display:flex; flex-wrap:wrap; gap:4px; }
+.item-tag { background:#222; padding:3px 8px; border:1px solid #555; border-radius:3px; }
+.game-toolbar { display:flex; flex-wrap:wrap; gap:4px; margin-left:auto; }
+.game-toolbar button { padding:8px 10px; margin:0; font-size:.9rem; }
+#dialogue-area { font-size:var(--reading-size); line-height:1.9; padding:24px 0; min-height:180px; overflow-wrap:anywhere; }
+#dialogue-text { white-space:pre-wrap; }
+#choices-area { display:flex; flex-direction:column; gap:10px; }
+.choice-btn { width:100%; text-align:left; padding:14px; margin:0; line-height:1.6; overflow-wrap:anywhere; }
+.skip-button { align-self:flex-end; font-size:.85rem; }
+.cursor::after { content:'|'; animation:blink 1s infinite; }
+.fade-in { animation:fadeIn .3s; }
+@keyframes blink { 50% { opacity:0; } }
+@keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+dialog { color:var(--text-color); background:#202020; border:1px solid #777; width:min(620px,calc(100% - 24px)); max-height:85dvh; padding:24px; overflow:auto; }
+dialog::backdrop { background:rgba(0,0,0,.8); }
+dialog label { display:block; margin:16px 0; line-height:1.8; }
+select { background:#111; color:#eee; padding:8px; }
+dialog input[type=range] { max-width:100%; vertical-align:middle; }
+.save-slot,#history-list section { padding:12px 0; border-bottom:1px solid #555; line-height:1.8; white-space:pre-wrap; overflow-wrap:anywhere; }
+.history-choice { color:#e2b681; }
+#notifications { position:fixed; right:12px; bottom:12px; z-index:120; pointer-events:none; max-width:min(380px,calc(100% - 24px)); }
+#notifications div { background:#292929; border:1px solid #aaa; padding:12px; margin-top:6px; }
+.reduced-motion *, .reduced-motion *::after { animation:none !important; transition:none !important; }
+@media(prefers-reduced-motion:reduce) { * { scroll-behavior:auto; } }
+@media(max-width:600px) {
+ body { padding:12px 10px; justify-content:flex-start; }
+ #title-screen { margin:auto 0; }
+ #game-container { padding:14px; }
+ #status-bar { gap:8px; }
+ .game-toolbar { width:100%; margin:0; }
+ .game-toolbar button { flex:1; }
+ .identity-btn { width:calc(50% - 20px); min-width:0; padding:10px 6px; }
+ dialog { padding:16px; }
+ #dialogue-area { min-height:160px; }
 }
-
-body, html {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    background-color: var(--bg-color);
-    font-family: var(--font-main);
-    color: var(--text-color);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-/* 背景动画效果 */
-.background-effect {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle, transparent 20%, #000 150%),
-                url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMTAxMDEwIi8+CjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiMyMDIwMjAiLz4KPC9zdmc+');
-    opacity: 0.5;
-    z-index: -1;
-    pointer-events: none;
-}
-
-/* 标题屏幕 */
-#title-screen {
-    text-align: center;
-    animation: fadeIn 2s ease-in-out;
-}
-
-h1 {
-    font-size: 4em;
-    margin-bottom: 0.5em;
-    color: var(--accent-color);
-    text-shadow: 2px 2px 4px #000;
-    letter-spacing: 5px;
-}
-
-h2 {
-    font-size: 2em;
-    margin-bottom: 1em;
-    border-bottom: 1px solid var(--secondary-color);
-    padding-bottom: 10px;
-}
-
-button {
-    background: transparent;
-    color: var(--text-color);
-    border: 1px solid var(--secondary-color);
-    padding: 15px 30px;
-    font-size: 1.2em;
-    font-family: var(--font-main);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin: 10px;
-    position: relative;
-    overflow: hidden;
-}
-
-button:hover {
-    background: var(--accent-color);
-    border-color: var(--accent-color);
-    color: #fff;
-    box-shadow: 0 0 15px var(--accent-color);
-}
-
-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    border-color: #333;
-}
-
-/* 身份选择界面 */
-#identity-screen {
-    width: 80%;
-    max-width: 1000px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-}
-
-#identity-list {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.identity-btn {
-    min-width: 100px;
-}
-
-#identity-description {
-    min-height: 60px;
-    font-style: italic;
-    color: #aaa;
-    margin: 20px 0;
-    padding: 15px;
-    border-left: 3px solid var(--accent-color);
-    background: rgba(255, 255, 255, 0.05);
-    width: 100%;
-    box-sizing: border-box;
-}
-
-/* 游戏主界面 */
-#game-container {
-    width: 90%;
-    max-width: 800px;
-    height: 80vh;
-    display: flex;
-    flex-direction: column;
-    background: rgba(0, 0, 0, 0.8);
-    border: 1px solid #333;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
-    padding: 20px;
-    position: relative;
-}
-
-#game-container {
-        width: 95%;
-        padding: 10px;
-    }
-
-#status-bar {
-    display: flex;
-    justify-content: space-between;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #333;
-    margin-bottom: 20px;
-    font-size: 0.9em;
-    color: #888;
-}
-
-#dialogue-area {
-    flex-grow: 1;
-    overflow-y: auto;
-    margin-bottom: 20px;
-    font-size: 1.3em;
-    line-height: 1.6;
-    padding-right: 10px;
-}
-
-/* 滚动条样式 */
-#dialogue-area::-webkit-scrollbar {
-    width: 8px;
-}
-#dialogue-area::-webkit-scrollbar-track {
-    background: #111;
-}
-#dialogue-area::-webkit-scrollbar-thumb {
-    background: #444;
-}
-
-#choices-area {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.choice-btn {
-    width: 100%;
-    text-align: left;
-    padding: 15px;
-}
-
-/* 动画 */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.fade-in {
-    animation: fadeIn 0.5s ease-in-out;
-}
-
-/* 打字机光标 */
-.cursor::after {
-    content: '|';
-    animation: blink 1s infinite;
-}
-
-@keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
-}
-
-/* 物品栏 */
-#inventory {
-    display: flex;
-    gap: 10px;
-}
-
-.item-tag {
-    background: #222;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.8em;
-    border: 1px solid #444;
-}
-
-/* 响应式 */
-@media (max-width: 600px) {
-    h1 { font-size: 2.5em; }
-    #game-container { width: 95%; height: 90vh; }
-    .identity-btn { width: 45%; }
-}
-
-/* 移动端适配 */
-@media (max-width: 768px) {
-    h1 {
-        font-size: 2.5em;
-        letter-spacing: 2px;
-    }
-
-    h2 {
-        font-size: 1.5em;
-    }
-
-    button {
-        padding: 12px 20px;
-        font-size: 1em;
-        width: 90%; /* 按钮在移动端更宽，方便点击 */
-        margin: 8px 0;
-    }
-
-    #identity-screen {
-        width: 95%;
-        padding: 10px;
-        max-height: 95vh; /* 防止超出屏幕 */
-        overflow-y: auto; /* 允许滚动 */
-    }
-
-    #identity-list {
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 8px;
-    }
-    
-    .identity-btn {
-        width: 45%; /* 双列显示 */
-        margin: 0;
-        padding: 10px 5px;
-        font-size: 0.9em;
-    }
-
-    #game-container {
-        width: 95%;
-        padding: 10px;
-    }
-
-    #status-bar {
-        flex-direction: column;
-        align-items: flex-start;
-        font-size: 0.9em;
-    }
-
-    #status-bar div {
-        margin-bottom: 5px;
-    }
-
-    #dialogue-area {
-        min-height: 150px; /* 移动端稍微减小高度 */
-        font-size: 1em;
-    }
-
-    #choices-area {
-        flex-direction: column;
-    }
-
-    .choice-btn {
-        width: 100%;
-        margin: 5px 0;
-    }
-    
-    /* 模态框适配 */
-    .modal-content {
-        width: 90%;
-        padding: 20px;
-    }
-}
+#chapter-heading h2 { margin:16px 0 0; font-size:1.15rem; color:#d0bca7; }
+#chapter-heading p { line-height:1.7; }
+#inventory summary { cursor:pointer; padding:6px 0; }

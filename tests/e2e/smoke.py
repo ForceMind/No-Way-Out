@@ -299,6 +299,68 @@ def run_smoke(repository, base, browser_path):
             isolated.close()
             print("PASS: corrupt saves/settings remain intact and quota failures do not report successful saves", flush=True)
 
+            for width in [360, 390, 768, 1366]:
+                reader_context = browser.new_context(viewport={"width":width,"height":800})
+                reader = reader_context.new_page()
+                observe(reader)
+                reader.add_init_script("window.AudioContext=undefined; window.webkitAudioContext=undefined;")
+                reader.goto(base, wait_until="networkidle")
+                reader.locator("#settings-btn-title").click()
+                reader.locator("#reading-speed").select_option("0")
+                reader.locator("#reading-size").select_option("24")
+                reader.locator("#reduced-motion").check()
+                reader.keyboard.press("Escape")
+                expect(reader.locator("#settings-modal")).not_to_be_visible()
+                reader.locator("#start-btn").click()
+                reader.locator("#identity-list").get_by_role("button", name="普通市民", exact=True).click()
+                reader.locator("#confirm-identity").click()
+                reader.locator("#choices-area").get_by_role("button",name="去亲戚家",exact=True).click()
+                expect(reader.locator("#choices-area button")).to_have_count(len(data["stories"]["citizen"]["relative1"]["choices"]))
+                reader.locator("#history-btn").click()
+                expect(reader.locator("#history-list section")).to_have_count(1)
+                expect(reader.locator("#history-list")).to_contain_text("你的选择：去亲戚家")
+                reader.keyboard.press("Tab")
+                assert reader.evaluate("document.activeElement.closest('dialog')?.id") == "history-modal"
+                reader.keyboard.press("Escape")
+                reader.locator("#saves-btn-game").click()
+                expect(reader.locator(".save-slot")).to_have_count(4)
+                reader.locator('[data-save-slot="manual-2"]').click()
+                slot = reader.evaluate("JSON.parse(localStorage.getItem('nw_save_v2_manual-2'))")
+                assert slot["state"]["currentNode"] == "relative1"
+                assert reader.evaluate("localStorage.getItem('nw_save_v2_manual-1')") is None
+                reader.keyboard.press("Escape")
+                assert reader.evaluate("document.documentElement.scrollWidth <= innerWidth"), width
+                reader.evaluate("document.querySelector('#dialogue-text').textContent = '很长的文字。'.repeat(300)")
+                last = reader.locator("#choices-area button").last
+                last.scroll_into_view_if_needed()
+                box = last.bounding_box()
+                assert box["x"] >= 0 and box["x"]+box["width"] <= width+1, (width,box)
+                reader.reload(wait_until="networkidle")
+                expect(reader.locator("#continue-btn")).to_be_visible()
+                reader.locator("#continue-btn").click()
+                expect(reader.locator("#dialogue-text")).to_have_text(data["stories"]["citizen"]["relative1"]["text"])
+                assert reader.evaluate("JSON.parse(localStorage.getItem('nw_save_v2_auto')).state.history.length") == 1
+                expect(reader.locator("#reading-speed")).to_have_value("0")
+                expect(reader.locator("#reading-size")).to_have_value("24")
+                expect(reader.locator("body")).to_have_class("reduced-motion")
+                reader_context.close()
+            print("PASS: reading/history/independent slots/continue, keyboard dialogs, long text and four viewport widths without Web Audio", flush=True)
+
+            skip_context = browser.new_context()
+            skip_page = skip_context.new_page()
+            observe(skip_page)
+            skip_page.goto(base, wait_until="networkidle")
+            skip_page.locator("#start-btn").click()
+            skip_page.locator("#identity-list").get_by_role("button",name="普通市民",exact=True).click()
+            skip_page.locator("#confirm-identity").click()
+            skip_page.locator("#skip-text").click()
+            expect(skip_page.locator("#choices-area button")).to_have_count(4)
+            skip_page.locator("#choices-area").get_by_role("button",name="去亲戚家",exact=True).click()
+            skip_page.locator("#dialogue-text").click()
+            expect(skip_page.locator("#choices-area button")).to_have_count(len(data["stories"]["citizen"]["relative1"]["choices"]))
+            skip_context.close()
+            print("PASS: skipping text exposes each choice once", flush=True)
+
             assert not page_errors, page_errors
             font_hosts = ("fonts.googleapis.com", "fonts.gstatic.com")
 
@@ -322,6 +384,9 @@ def run_smoke(repository, base, browser_path):
             if any(urlparse(entry["url"]).path == "/favicon.ico" for entry in http_errors):
                 print("OPTIONAL REPOSITORY ISSUE: editor default favicon.ico is absent (HTTP 404)", flush=True)
             context.close()
+        except Exception:
+            print("BROWSER ERRORS:", page_errors, console_errors, flush=True)
+            raise
         finally:
             browser.close()
 

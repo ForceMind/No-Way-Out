@@ -15,6 +15,8 @@ export class ParticleSystem {
         document.body.appendChild(this.canvas);
 
         window.addEventListener('resize', () => this.resize());
+        this.reducedMotion = false;
+        this.frame = null;
         this.animate();
     }
 
@@ -34,7 +36,16 @@ export class ParticleSystem {
         };
     }
 
+    setReducedMotion(value) {
+        this.reducedMotion = value;
+        if (this.frame !== null) cancelAnimationFrame(this.frame);
+        this.frame = null;
+        this.ctx?.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        if (!value && this.ctx) this.animate();
+    }
+
     animate() {
+        if (this.reducedMotion || !this.ctx) return;
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
         if (this.particles.length < 100) {
@@ -56,7 +67,7 @@ export class ParticleSystem {
             }
         }
 
-        requestAnimationFrame(() => this.animate());
+        this.frame = requestAnimationFrame(() => this.animate());
     }
 }
 
@@ -71,6 +82,7 @@ export class AudioManager {
     init() {
         if (this.context) return;
         const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
         this.context = new AudioContext();
         this.gainNode = this.context.createGain();
         this.gainNode.connect(this.context.destination);
