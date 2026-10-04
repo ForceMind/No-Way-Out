@@ -17,3 +17,9 @@ test('each farmer opening leads onward and money has a same-identity source', ()
     const warnings = validateStories({ farmer: nodes }, [{ id: 'farmer' }]).warnings;
     assert.ok(!warnings.some(issue => issue.code === 'item-source' && issue.message.includes('钱币')));
 });
+
+test('published content has no unreviewed warnings and exactly six explicit legacy archives',()=>{
+    const {warnings}=validateStories(storyData,identities);
+    assert.deepEqual(warnings.filter(issue=>issue.code!=='archived'),[]);
+    assert.equal(warnings.filter(issue=>issue.code==='archived').length,6);
+});

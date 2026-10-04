@@ -61,9 +61,9 @@ export const agentData = {
 
     ending_agent_win: { text: "系统：你成功将情报送出，随后为了掩护同志撤离而牺牲（地下党员结局1）", choices: [] },
     ending_agent_fail: { text: "系统：你销毁了情报，错失良机，自己被日军抓获并砍头（地下党员结局2）", choices: [] },
-    ending_agent_river_escape: { text: "系统：你不了解水性，船翻了，你被淹死了（地下党员结局3）", choices: [] },
-    ending_agent_east_escape: { text: "系统：你用贿赂逃出东门，全是日军，你被射杀了（地下党员结局4）", choices: [] },
-    ending_agent_secret_escape: { text: "系统：你在地下迷路，被困死（地下党员结局5）", choices: [] },
+    ending_agent_river_escape: { archived:true, archiveReason:"旧结局草稿缺少相应前置事件，保留 ID 兼容旧记录，等待剧情扩写。", text: "系统：你不了解水性，船翻了，你被淹死了（地下党员结局3）", choices: [] },
+    ending_agent_east_escape: { archived:true, archiveReason:"旧结局草稿缺少相应前置事件，保留 ID 兼容旧记录，等待剧情扩写。", text: "系统：你用贿赂逃出东门，全是日军，你被射杀了（地下党员结局4）", choices: [] },
+    ending_agent_secret_escape: { archived:true, archiveReason:"旧结局草稿缺少相应前置事件，保留 ID 兼容旧记录，等待剧情扩写。", text: "系统：你在地下迷路，被困死（地下党员结局5）", choices: [] },
     ending_agent_action: { text: "系统：你在突袭中壮烈牺牲（地下党员结局6）", choices: [] },
     ending_agent_hanjian: { text: "系统：你当了狗汉奸，在睡梦中被勒死（地下党员结局7）", choices: [] },
     ending_agent_caught: { text: "系统：你被日军抓获并砍头（地下党员结局8）", choices: [] }

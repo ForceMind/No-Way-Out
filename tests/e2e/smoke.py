@@ -4,6 +4,7 @@ import argparse
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import shutil
+import subprocess
 from threading import Thread
 import json
 import os
@@ -26,6 +27,8 @@ def run_smoke(repository, base, browser_path):
                 assert response.headers.get_content_type() in ("text/javascript", "application/javascript"), name
     print(f"PASS: HTTP contents for {len(files)} local resources", flush=True)
 
+    route_output = subprocess.run(["node","--input-type=module","-e","import {identities} from './js/data.js'; import {findRoute} from './scripts/route-search.mjs'; console.log(JSON.stringify([...identities.map(item=>findRoute(item.id)),findRoute('refugee',{target:'ending_refugee_sewer'}),findRoute('farmer',{target:'ending_farmer_secret'})]));"],cwd=Path(__file__).resolve().parents[2],capture_output=True,text=True,check=True)
+    classic_routes=json.loads(route_output.stdout)
     page_errors = []
     console_errors = []
     failed_requests = []
@@ -452,6 +455,26 @@ def run_smoke(repository, base, browser_path):
             expect(survival_page.locator("#endings-list p")).to_have_count(3)
             survival_context.close()
             print("PASS: three-day transfer/shelter/health-loss routes, settlement-safe reload and independent ending collection",flush=True)
+
+            classic_context=browser.new_context()
+            classic_page=classic_context.new_page()
+            observe(classic_page)
+            classic_page.add_init_script("localStorage.setItem('nw_preferences',JSON.stringify({speed:0,fontSize:20,reducedMotion:true}));localStorage.setItem('nw_volume',JSON.stringify({bgm:0,sfx:0}));")
+            for route in classic_routes:
+                classic_page.goto(base,wait_until="networkidle")
+                classic_page.locator("#start-btn").click()
+                identity=next(item for item in data["identities"] if item["id"]==route["identity"])
+                classic_page.locator("#identity-list").get_by_role("button",name=identity["name"],exact=True).click()
+                classic_page.locator("#confirm-identity").click()
+                for step in route["steps"]:
+                    classic_page.locator("#choices-area").get_by_role("button",name=step["text"],exact=True).click()
+                    expect(classic_page.locator("#dialogue-text")).to_have_text(data["stories"][route["identity"]][step["next"]]["text"])
+                final=classic_page.evaluate("JSON.parse(localStorage.getItem('nw_save_v2_auto')).state")
+                assert final["currentNode"]==route["ending"] and final["ruleset"]=="classic"
+                assert len(final["history"])==len(route["steps"])
+                expect(classic_page.locator("#choices-area").get_by_role("button",name="返回主菜单",exact=True)).to_be_visible()
+                print(f"PASS: complete classic route {route['identity']} -> {route['ending']}",flush=True)
+            classic_context.close()
 
             assert not page_errors, page_errors
             font_hosts = ("fonts.googleapis.com", "fonts.gstatic.com")

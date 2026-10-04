@@ -12,7 +12,7 @@ export const refugeeData = {
     water_sneak: { text: "你悄悄打水，哨兵似乎听到了声音。", choices: [ {text:"装作乞丐", next:"water_beg"}, {text:"迅速离开", next:"warehouse1"} ] },
     water_beg: { text: "哨兵用枪驱赶你，你低声求饶后逃走。", choices: [ {text:"返回仓库", next:"warehouse1"} ] },
 
-    warehouse1: { text: "仓库里聚集了许多难民，他们在商议逃生路线。有人提议建立临时营地，等待救援。", choices: [ {text:"跟随大队走", next:"team1"}, {text:"单独探索", next:"alone1"}, {text:"留在仓库建立营地", next:"refugee_camp_start"} ] },
+    warehouse1: { text: "仓库里聚集了许多难民，他们在商议逃生路线。有人提议建立临时营地，等待救援。", choices: [ {text:"跟随大队走", next:"team1"}, {text:"单独探索", next:"alone1"}, {text:"留在仓库建立营地", next:"refugee_camp_start"}, {id:"refugee_ask_route",text:"询问仓库里的人是否知道别的路线",next:"warehouse_info"} ] },
 
     // 难民-仓库营地分支 (Day 1-5)
     refugee_camp_start: { text: "第一天。你决定留在仓库，和大家抱团取暖。你需要选择一个角色。", choices: [ {text:"负责搜寻物资", next:"camp_scout"}, {text:"负责照顾老弱", next:"camp_care"} ] },

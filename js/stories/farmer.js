@@ -40,7 +40,7 @@ export const farmerData = {
     farmer_east: { text: "东门守卫严密。", choices: [ {text:"尝试贿赂", next:"farmer_bribe", condition: {hasItem: "钱币"}}, {text:"寻找其他路", next:"farmer_west"} ] },
     farmer_bribe: { text: "你拿出仅有的铜钱。", choices: [ {text:"全部给出", next:"ending_farmer_east_escape"}, {text:"放弃", next:"farmer_west"} ] },
 
-    farmer_west: { text: "西门周围有几名士兵巡逻。", choices: [ {text:"躲在车后", next:"farmer_hide_west"}, {text:"试着混过去", next:"ending_farmer_caught"} ] },
+    farmer_west: { text: "西门周围有几名士兵巡逻。", choices: [ {text:"躲在车后", next:"farmer_hide_west"}, {text:"试着混过去", next:"ending_farmer_caught"}, {id:"farmer_field_route",text:"沿熟悉的田埂寻找城外小路",next:"ending_farmer_secret"} ] },
     farmer_hide_west: { text: "你趁士兵不注意从旁边的小道溜出去。", choices: [ {text:"成功逃出", next:"ending_farmer_west_escape"} ] },
 
     farmer_church: { text: "教堂里有修女安抚难民，她问你是否愿意帮忙耕地换食物。", choices: [ {text:"答应", next:"farmer_help_church"}, {text:"拒绝", next:"farmer_river"} ] },

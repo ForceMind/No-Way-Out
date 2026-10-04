@@ -8,7 +8,7 @@ if (process.argv.includes('--json')) {
     const { stats, errors, warnings } = result;
     console.log(`剧情检查：${stats.identities} 个身份，${stats.nodes} 个节点，${stats.choices} 个选项，${stats.endings} 个结束节点`);
     for (const issue of errors) console.error(`ERROR [${issue.code}] ${issue.path}: ${issue.message}`);
-    console.log(`错误：${errors.length}；待核对警告：${warnings.length}`);
+    console.log(`错误：${errors.length}；待核对警告：${warnings.filter(issue=>issue.code!=='archived').length}；已标记归档：${warnings.filter(issue=>issue.code==='archived').length}`);
     if (process.argv.includes('--verbose')) {
         for (const issue of warnings) console.warn(`WARN [${issue.code}] ${issue.path}: ${issue.message}`);
     }

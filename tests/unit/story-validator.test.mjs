@@ -61,3 +61,16 @@ test('declared initial items and choice effects satisfy item-source checks', () 
     data.sample.start.choices[0].effect = { addItem: '钥匙', health: -5 };
     assert.equal(validateStories(data, identities).warnings.length, 0);
 });
+
+test('archives require a reason and cannot be linked into published routes',()=>{
+    const data=story();data.sample.old={text:'旧稿',choices:[],archived:true,archiveReason:'缺少前置剧情，保留旧 ID'};
+    assert.equal(validateStories(data,identities).warnings[0].code,'archived');
+    data.sample.start.choices[0].next='old';
+    assert.ok(validateStories(data,identities).errors.some(issue=>issue.code==='archive'));
+    data.sample.old.archiveReason='';
+    assert.ok(validateStories(data,identities).errors.some(issue=>issue.code==='archive'));
+});
+test('choice IDs and presentation metadata cannot contain ambiguous values',()=>{
+    const data=story();data.sample.start.choices=[{id:'same',text:'一',next:'end',strenuous:'yes'},{id:'same',text:'二',next:'end',visibility:'unknown'}];
+    assert.equal(validateStories(data,identities).errors.length,3);
+});

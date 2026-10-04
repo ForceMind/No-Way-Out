@@ -73,7 +73,7 @@
         Object.keys(nodes).filter(key => key.toLowerCase().includes(search) || nodes[key].text.toLowerCase().includes(search)).forEach(key => {
             const div = document.createElement('button');
             div.className = `node-item ${key === currentNodeKey ? 'active' : ''}`;
-            div.textContent = key;
+            div.textContent = nodes[key].archived ? `${key}（归档）` : key;
             div.onclick = () => selectNode(key);
             nodeListEl.appendChild(div);
         });

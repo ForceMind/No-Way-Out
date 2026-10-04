@@ -45,6 +45,9 @@ export function validateStories(stories, identities, { initialItems = {} } = {})
                 continue;
             }
             if (node.choices.length === 0) stats.endings++;
+            if (node.archived !== undefined && typeof node.archived !== 'boolean') issue(errors,'archive',path,'archived 必须为布尔值');
+            if (node.archived && (!nonempty(node.archiveReason) || node.choices.length)) issue(errors,'archive',path,'归档必须是无选项节点，并填写归档原因');
+            const choiceIds = new Set();
             node.choices.forEach((choice, index) => {
                 stats.choices++;
                 const choicePath = `${path}.choices[${index}]`;
@@ -52,6 +55,12 @@ export function validateStories(stories, identities, { initialItems = {} } = {})
                     issue(errors, 'choice', choicePath, '选项必须包含非空 text');
                     return;
                 }
+                if (choice.id !== undefined) {
+                    if (!nonempty(choice.id) || choiceIds.has(choice.id)) issue(errors,'choice-id',choicePath,'选项 ID 必须非空，且在节点内唯一');
+                    choiceIds.add(choice.id);
+                }
+                if (choice.strenuous !== undefined && typeof choice.strenuous !== 'boolean') issue(errors,'choice',choicePath,'strenuous 必须为布尔值');
+                if (choice.visibility !== undefined && !['locked','secret'].includes(choice.visibility)) issue(errors,'choice',choicePath,'visibility 必须为 locked 或 secret');
                 if (!nonempty(choice.next) || !Object.hasOwn(nodes, choice.next) || !object(nodes[choice.next])) {
                     issue(errors, 'target', choicePath, `跳转目标不存在：${String(choice.next)}`);
                 }
@@ -75,7 +84,8 @@ export function validateStories(stories, identities, { initialItems = {} } = {})
             }
         }
         for (const key of Object.keys(nodes)) {
-            if (!visited.has(key)) issue(warnings, 'unreachable', `${id}.${key}`, '从 start 结构上不可达；需核对是否为保留内容');
+            if (nodes[key]?.archived && visited.has(key)) issue(errors,'archive',`${id}.${key}`,'正式路线引用了归档节点，请先取消归档并完成内容审查');
+            else if (!visited.has(key)) issue(warnings, nodes[key]?.archived ? 'archived' : 'unreachable', `${id}.${key}`, nodes[key]?.archived ? nodes[key].archiveReason : '从 start 结构上不可达；需核对是否为保留内容');
         }
     }
     return { errors, warnings, stats };
