@@ -9,3 +9,12 @@
 - 对应提交主题：`docs: record development plan and step-by-step progress`。
 - 远端状态：读取 origin 分支时 CONNECT 请求返回 403，尚未推送。已保存仅增加 github.com 的网络配置草稿，等待用户在环境设置中保存并发布。
 - 下一步：M1-1，建立剧情校验与回归基线；校验应准确报告农夫开局的两处缺失跳转。
+
+## 2026-10-04 · M1-1：剧情校验与回归基线
+
+- 修改：新增共用剧情校验模块、命令行入口、6 项原生单元测试和仓库内浏览器烟雾脚本；忽略生成的测试文件。
+- 验证：node --test --test-isolation=none tests/unit/*.test.mjs 实际执行 6 项用例，全部通过。剧情检查按预期退出 1，准确报告 farmer_food 和 farmer_family 两处缺失目标；37 项警告为 25 个结构不可达节点与 12 处物品来源问题。
+- 浏览器：静态资源、12 份剧情模块、市民代表路线、BGM、存档与设置持久化、条件选项、编辑器保存导出及应用异常检查通过；Google 字体不可用为已知可选资源问题。
+- 对应提交主题：`test: add story validation and browser regression baseline`。
+- 远端状态：待网络配置生效后推送，本步已完成本地版本记录。
+- 下一步：M1-2，补齐农夫开局，令剧情校验恢复成功退出。

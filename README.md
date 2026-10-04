@@ -33,3 +33,25 @@
 - `js/game.js`: 游戏核心引擎。
 - `js/data.js`: 剧情文本与数据。
 - `assets/`: 资源文件夹。
+
+## 开发计划与验证
+
+- 完整方案：DEVELOPMENT_PLAN.md。
+- 逐步开发及实际验证记录：DEVELOPMENT_LOG.md。
+
+在仓库根目录运行（Node.js 24）：
+
+```bash
+node scripts/validate-stories.mjs
+node --test --test-isolation=none tests/unit/*.test.mjs
+```
+
+剧情校验遇到缺失跳转、格式或规则错误时返回非零状态；`--verbose` 展示待核对警告，`--json` 输出结构化结果。
+
+浏览器回归使用 Python Playwright，自动启动并关闭本地静态服务器：
+
+```bash
+python3 tests/e2e/smoke.py
+```
+
+默认使用系统 Chromium；可通过 `--browser-path` 指定浏览器路径。当前云镜像已预装所需工具。
