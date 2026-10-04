@@ -1,5 +1,7 @@
+import {citizenSurvivalData} from './citizen-survival.js';
 export const citizenData = {
-    start: { text: "邻居：城中已不再安全，你要去哪里避难？", choices: [ {text:"去防空洞", next:"shelter"}, {text:"去教堂避难", next:"church"}, {text:"留在家中", next:"home"}, {text:"去亲戚家", next:"relative1"} ] },
+    ...citizenSurvivalData,
+    start: { text: "邻居：城中已不再安全，你要去哪里避难？", choices: [ {text:"去防空洞", next:"shelter"}, {text:"去教堂避难", next:"church"}, {text:"留在家中", next:"home"}, {text:"去亲戚家", next:"relative1"}, {id:"citizen_survival_chapter",text:"三日生存：灯火未熄",next:"city3_intro"} ] },
 
     // 亲戚家分支
     relative1: { text: "你来到亲戚家，但发现家里没人，物资也所剩无几。", choices: [ {text:"翻找食物", next:"relative_food"}, {text:"上街寻找", next:"street1"}, {text:"继续等待", next:"relative_wait"} ] },

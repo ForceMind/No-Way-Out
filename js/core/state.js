@@ -38,5 +38,12 @@ export function stateErrors(state, stories) {
         }
         if (key === 'flags' ? Object.values(value).some(v => typeof v !== 'boolean') : Object.values(value).some(v => !Number.isInteger(v) || v < 0)) errors.push(`${key} 内容无效`);
     }
+    if (state.ruleset !== undefined && !['classic','survival-v1'].includes(state.ruleset)) errors.push('未知章节规则');
+    if (state.ruleset === 'survival-v1') {
+        const clock=state.clock;
+        if (!clock || !Number.isInteger(clock.day) || clock.day<1 || clock.day>3 || !Number.isInteger(clock.period) || clock.period<0 || clock.period>2 || !Number.isInteger(clock.lastSettledDay) || clock.lastSettledDay<0 || clock.lastSettledDay>3 || typeof clock.finished!=='boolean' || (clock.finished ? clock.day!==3 || clock.period!==2 || clock.lastSettledDay!==3 : clock.lastSettledDay!==clock.day-1)) errors.push('章节时钟无效');
+        if (state.currentIdentity !== 'citizen' || !state.currentNode?.startsWith('city3_') || !Object.hasOwn(nodes??{},'city3_ending_loss')) errors.push('生存规则与章节不匹配');
+        if (!state.resources || !['food','water'].every(key=>Object.hasOwn(state.resources,key))) errors.push('缺少章节资源');
+    }
     return errors;
 }

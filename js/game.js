@@ -438,8 +438,8 @@ class Game {
 
         const nodeKey = this.state.currentNode;
         choices.forEach((choice, choiceIndex) => {
-            const condition = checkCondition(choice.condition, this.state);
-            if (!condition.allowed && choice.visibility !== 'locked') return;
+            const condition = choice.strenuous && this.state.ruleset === 'survival-v1' && this.state.fatigue >= 80 ? {allowed:false,reason:'疲劳过高，请先休息'} : checkCondition(choice.condition, this.state);
+            if (!condition.allowed && choice.visibility !== 'locked' && !choice.strenuous) return;
 
             const btn = document.createElement('button');
             btn.textContent = condition.allowed ? choice.text : `${choice.text}（${condition.reason}）`;
@@ -472,11 +472,11 @@ class Game {
         const heading = document.getElementById('chapter-heading');
         heading.replaceChildren();
         const title = document.createElement('h2');
-        title.textContent = ending ? node.ending?.title ?? `${identity} · 结局` : `${identity}${node.chapter ? ` · ${node.chapter}` : ''}${node.location ? ` · ${node.location}` : ''}`;
+        title.textContent = ending ? node.ending?.title ?? `${identity} · ${node.text.match(/（([^（）]*结局[^（）]*)）/)?.[1] ?? this.state.currentNode}` : `${identity}${node.chapter ? ` · ${node.chapter}` : ''}${node.location ? ` · ${node.location}` : ''}`;
         heading.append(title);
         if (ending) {
             const summary = document.createElement('p');
-            summary.textContent = `经历 ${this.state.history.length} 次选择 · 生命 ${this.state.health} · 理智 ${this.state.sanity}`;
+            summary.textContent = `经历 ${this.state.history.length} 次选择 · 生命 ${this.state.health} · 理智 ${this.state.sanity}${this.state.ruleset==='survival-v1' ? ` · 食物 ${this.state.resources.food} · 饮水 ${this.state.resources.water}` : ''}`;
             heading.append(summary);
             const last = this.state.history.slice(-3);
             for (const entry of last) {const p=document.createElement('p');p.textContent=`关键经历：${entry.text}`;heading.append(p);}
@@ -485,6 +485,9 @@ class Game {
     }
 
     updateStatus() {
+        const survival=document.getElementById('survival-status');
+        survival.hidden=this.state.ruleset !== 'survival-v1';
+        if(!survival.hidden) survival.textContent=`第 ${this.state.clock.day} 天 · ${['清晨','午后','夜晚'][this.state.clock.period]} · 食物 ${this.state.resources.food} · 饮水 ${this.state.resources.water} · 饥饿 ${this.state.hunger} · 疲劳 ${this.state.fatigue}`;
         this.elements.healthDisplay.textContent = `生命：${this.state.health}`;
         if (this.elements.sanityDisplay) {
             this.elements.sanityDisplay.textContent = `理智：${this.state.sanity}`;

@@ -110,7 +110,7 @@ def run_smoke(repository, base, browser_path):
             page.locator("#identity-list").get_by_role("button", name="普通市民", exact=True).click()
             page.locator("#confirm-identity").click()
             wait_node("start")
-            expect(page.locator("#choices-area button")).to_have_count(4)
+            expect(page.locator("#choices-area button")).to_have_count(len(data["stories"]["citizen"]["start"]["choices"]))
             choose("去亲戚家", "relative1")
             choose("翻找食物", "relative_food")
             choose("拿走现有食物", "relative_leave")
@@ -188,7 +188,7 @@ def run_smoke(repository, base, browser_path):
             editor.locator("#node-list").get_by_text("home", exact=True).click()
             editor.locator("#node-list").get_by_text("start", exact=True).click()
             expect(editor.locator("#node-text")).to_have_value(changed_text)
-            expect(editor.locator(".choice-item")).to_have_count(5)
+            expect(editor.locator(".choice-item")).to_have_count(len(data["stories"]["citizen"]["start"]["choices"])+1)
             with editor.expect_download() as download_event:
                 editor.get_by_role("button", name="导出 JSON (完整备份)", exact=True).click()
             with tempfile.TemporaryDirectory(prefix="no-way-out-smoke-") as output_dir:
@@ -410,12 +410,48 @@ def run_smoke(repository, base, browser_path):
             skip_page.locator("#identity-list").get_by_role("button",name="普通市民",exact=True).click()
             skip_page.locator("#confirm-identity").click()
             skip_page.locator("#skip-text").click()
-            expect(skip_page.locator("#choices-area button")).to_have_count(4)
+            expect(skip_page.locator("#choices-area button")).to_have_count(len(data["stories"]["citizen"]["start"]["choices"]))
             skip_page.locator("#choices-area").get_by_role("button",name="去亲戚家",exact=True).click()
             skip_page.locator("#dialogue-text").click()
             expect(skip_page.locator("#choices-area button")).to_have_count(len(data["stories"]["citizen"]["relative1"]["choices"]))
             skip_context.close()
             print("PASS: skipping text exposes each choice once", flush=True)
+
+            survival_context=browser.new_context()
+            survival_page=survival_context.new_page()
+            observe(survival_page)
+            survival_page.add_init_script("if (!localStorage.getItem('nw_preferences')) localStorage.setItem('nw_preferences',JSON.stringify({speed:0,fontSize:20,reducedMotion:true}));")
+            routes=[
+                (["city3_d1_clue","city3_d1_water","city3_d1_rest","city3_d2_verify","city3_d2_food","city3_d2_sleep","city3_d3_water","city3_d3_rest2","city3_d3_prepare","city3_transfer"],"city3_ending_transfer"),
+                (["city3_d1_food","city3_d1_help","city3_d1_repair","city3_d2_rest","city3_d2_water","city3_d2_sleep","city3_d3_food","city3_d3_rest2","city3_d3_prepare","city3_shelter"],"city3_ending_shelter"),
+                (["city3_d1_clue","city3_d1_water","city3_d1_rest","city3_d2_verify","city3_d2_food","city3_d2_risk"],"city3_ending_loss")
+            ]
+            for route,ending in routes:
+                survival_page.goto(base,wait_until="networkidle")
+                survival_page.locator("#start-btn").click()
+                survival_page.locator("#identity-list").get_by_role("button",name="普通市民",exact=True).click()
+                survival_page.locator("#confirm-identity").click()
+                for action_id in ["citizen_survival_chapter","city3_begin",*route]:
+                    state=survival_page.evaluate("JSON.parse(localStorage.getItem('nw_save_v2_auto')).state")
+                    choice=next(choice for choice in data["stories"]["citizen"][state["currentNode"]]["choices"] if choice.get("id")==action_id)
+                    survival_page.locator("#choices-area").get_by_role("button",name=choice["text"],exact=True).click()
+                    next_state=survival_page.evaluate("JSON.parse(localStorage.getItem('nw_save_v2_auto')).state")
+                    expect(survival_page.locator("#dialogue-text")).to_have_text(data["stories"]["citizen"][next_state["currentNode"]]["text"])
+                    if action_id=="city3_d1_rest":
+                        assert next_state["clock"]["day"]==2 and next_state["clock"]["lastSettledDay"]==1
+                        survival_page.reload(wait_until="networkidle")
+                        survival_page.locator("#continue-btn").click()
+                        assert survival_page.evaluate("JSON.parse(localStorage.getItem('nw_save_v2_auto')).state")==next_state
+                        expect(survival_page.locator("#survival-status")).to_contain_text("第 2 天")
+                finished=survival_page.evaluate("JSON.parse(localStorage.getItem('nw_save_v2_auto')).state")
+                assert finished["currentNode"]==ending
+                expect(survival_page.locator("#chapter-heading")).to_contain_text(data["stories"]["citizen"][ending]["ending"]["title"])
+                if ending!="city3_ending_loss": assert finished["clock"]["lastSettledDay"]==3
+            survival_page.get_by_role("button",name="返回主菜单",exact=True).click()
+            survival_page.locator("#endings-btn").click()
+            expect(survival_page.locator("#endings-list p")).to_have_count(3)
+            survival_context.close()
+            print("PASS: three-day transfer/shelter/health-loss routes, settlement-safe reload and independent ending collection",flush=True)
 
             assert not page_errors, page_errors
             font_hosts = ("fonts.googleapis.com", "fonts.gstatic.com")

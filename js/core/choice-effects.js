@@ -15,6 +15,10 @@ export function effectErrors(effect) {
             if (!object(value) || Object.entries(value).some(([flag, state]) => !nonempty(flag) || typeof state !== 'boolean')) errors.push('setFlags 必须包含布尔值');
         } else if (key === 'resources') {
             if (!object(value) || Object.entries(value).some(([resource, amount]) => !nonempty(resource) || !Number.isInteger(amount))) errors.push('resources 必须包含整数增减值');
+        } else if (key === 'advanceTime') {
+            if (!Number.isInteger(value) || value < 1 || value > 3) errors.push('advanceTime 必须为 1–3 时段');
+        } else if (key === 'startSurvival') {
+            if (value !== true) errors.push('startSurvival 必须为 true');
         } else errors.push(`不支持的效果：${key}`);
     }
     if (Object.hasOwn(effect, 'health') && Object.hasOwn(effect, 'changeHealth')) errors.push('health 与 changeHealth 不能同时存在');
@@ -30,6 +34,8 @@ export function applyEffects(state, effect = {}) {
         const value = (Object.hasOwn(next.resources, resource) ? next.resources[resource] : 0) + amount;
         if (value < 0) return { ok: false, reason: '资源不足，行动未执行' };
         next.resources = { ...next.resources, [resource]: value };
+        const label={food:"食物",water:"饮水"}[resource]??resource;
+        if(amount) events.push({type:"resource",message:`${label}${amount>0?"增加":"减少"} ${Math.abs(amount)} 份`});
     }
     const changes = { health: effect.health ?? effect.changeHealth, sanity: effect.sanity, hunger: effect.hunger, fatigue: effect.fatigue };
     const labels = { health: '生命', sanity: '理智', hunger: '饥饿', fatigue: '疲劳' };

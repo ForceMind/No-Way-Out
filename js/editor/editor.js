@@ -261,7 +261,7 @@
         document.getElementById('preview-text').textContent=node.text;
         document.getElementById('preview-status').textContent=`${previewState.currentNode} · 生命 ${previewState.health} · 理智 ${previewState.sanity}`;
         const choices=document.getElementById('preview-choices');choices.replaceChildren();
-        node.choices.forEach((choice,index)=>{const button=document.createElement('button');const condition=checkCondition(choice.condition,previewState);button.textContent=choice.text+(condition.allowed?'':`（${condition.reason}）`);button.disabled=!condition.allowed;button.onclick=()=>{const result=transition(previewState,{nodeKey:previewState.currentNode,choiceIndex:index},currentData);if(result.ok){previewState=result.state;renderPreview();}else showError(new Error(result.reason));};choices.append(button);});
+        node.choices.forEach((choice,index)=>{const button=document.createElement('button');const condition=choice.strenuous && previewState.ruleset==='survival-v1' && previewState.fatigue>=80 ? {allowed:false,reason:'疲劳过高'} : checkCondition(choice.condition,previewState);button.textContent=choice.text+(condition.allowed?'':`（${condition.reason}）`);button.disabled=!condition.allowed;button.onclick=()=>{const result=transition(previewState,{nodeKey:previewState.currentNode,choiceIndex:index},currentData);if(result.ok){previewState=result.state;renderPreview();}else showError(new Error(result.reason));};choices.append(button);});
         if(!node.choices.length)choices.textContent='此节点为结局。';
     }
     document.getElementById('preview-btn').onclick=()=>{if(isDirty()){showError(new Error('请先保存节点，再预览'));return;}previewRestart();document.getElementById('preview-modal').showModal();};
