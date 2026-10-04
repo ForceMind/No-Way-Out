@@ -1,3 +1,4 @@
+import {additionalProfiles} from './stories/expansions/profiles.js';
 import {buildExpansion} from './stories/expansions/build.js';
 import {orphanExpansion} from './stories/expansions/orphan.js';
 import {nunExpansion} from './stories/expansions/nun.js';
@@ -44,8 +45,8 @@ export const identities = [
     { id: 'driver', name: '车夫', desc: '你拉着破车，载着希望与恐惧穿行于城中。' }
 ];
 
-for(const [id,profile] of Object.entries({orphan:orphanExpansion,nun:nunExpansion})) {
+for(const [id,profile] of Object.entries({orphan:orphanExpansion,nun:nunExpansion,...additionalProfiles})) {
  const expansion=buildExpansion(id,profile);
- Object.assign(storyData[id],expansion.nodes);
- storyData[id].start.choices.push(expansion.entry);
+ for(const [key,node] of Object.entries(expansion.nodes)) if(!Object.hasOwn(storyData[id],key)) storyData[id][key]=node;
+ if(!storyData[id].start.choices.some(choice=>choice.id===expansion.entry.id)) storyData[id].start.choices.push(expansion.entry);
 }

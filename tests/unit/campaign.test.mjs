@@ -7,6 +7,7 @@ import {createSave,decodeSave} from '../../js/core/save-store.js';
 import {stateErrors} from '../../js/core/state.js';
 import {describeNode} from '../../js/core/narrative.js';
 import {walkCampaign} from '../../scripts/campaign-routes.mjs';
+test('all twelve identities provide complete long campaigns',()=>assert.equal(ids.length,12));
 const ids=Object.keys(storyData).filter(id=>storyData[id][`campaign_${id}_start`]);
 for(const id of ids) {
  test(`${id}: all campaign branches advance exactly one consequential scene`,()=>{

@@ -20,6 +20,7 @@ export function transition(state, selection, stories, { now = Date.now } = {}) {
     if (!Object.hasOwn(nodes, choice.next) || !nodes[choice.next]?.text) return { ok: false, reason: '目标剧情不存在，行动未执行' };
     if (choice.strenuous && state.ruleset === SURVIVAL_RULESET && state.fatigue >= 80) return {ok:false,reason:'过于疲劳，需要先休息'};
     if (choice.effect?.startSurvival && (state.ruleset === SURVIVAL_RULESET || !Object.hasOwn(nodes,'city3_ending_loss'))) return {ok:false,reason:'无法重复开始生存章节'};
+    if(choice.effect?.endCampaignChapter && (state.ruleset!=='campaign-v1' || !state.currentNode.endsWith('_handoff'))) return {ok:false,reason:'此处不可结算长篇章节'};
     const condition = checkCondition(choice.condition, state);
     if (!condition.allowed) return { ok: false, reason: condition.reason };
     if(choice.effect?.startCampaign && (state.ruleset!=='classic' || choice.next!==`campaign_${state.currentIdentity}_start`)) return {ok:false,reason:'无法重复开始完整长篇'};
@@ -29,6 +30,7 @@ export function transition(state, selection, stories, { now = Date.now } = {}) {
     let next = result.state;
     if (choice.effect?.startCampaign) next={...createCampaignState(state.currentIdentity),history:structuredClone(state.history)};
     if(state.ruleset==='campaign-v1') next.campaign.decisions++;
+    if(choice.effect?.endCampaignChapter) {next.resources.chapterWork=0;next.resources.chapterProof=0;}
     if (choice.effect?.startSurvival) next=beginSurvival(next);
     if (choice.effect?.advanceTime) {
         const advanced=advanceTime(next,choice.effect.advanceTime);

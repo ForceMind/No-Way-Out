@@ -43,7 +43,9 @@ export function stateErrors(state, stories) {
         const count=state.campaign?.decisions;
         if(!Number.isInteger(count)||count<0||count>208 || nodes?.[state.currentNode]?.campaign?.step!==count || !state.currentNode?.startsWith(`campaign_${state.currentIdentity}_`)) errors.push('长篇决策进度无效');
         if(!Array.isArray(state.history) || state.history.filter(e=>e?.campaignDecision===true).length!==count) errors.push('长篇决策次数与历史不符');
-        if(!state.resources || !['kit','work','proof','care'].every(k=>Number.isInteger(state.resources[k])&&state.resources[k]>=0)) errors.push('长篇资源无效');
+        const decisions=Array.isArray(state.history)?state.history.filter(e=>e?.campaignDecision===true):[];
+        if(decisions.some((entry,index)=>entry.identity!==state.currentIdentity || nodes?.[entry.from]?.campaign?.step!==index || nodes?.[entry.to]?.campaign?.step!==index+1)) errors.push('长篇历史章节次序无效');
+        if(!state.resources || !['kit','work','proof','care','chapterWork','chapterProof'].every(k=>Number.isInteger(state.resources[k])&&state.resources[k]>=0)) errors.push('长篇资源无效');
     }
     if (state.ruleset === 'survival-v1') {
         const clock=state.clock;

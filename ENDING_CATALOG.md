@@ -30,6 +30,15 @@
 | ending_mountain_death | 系统：你在山林中冻饿而死（市民结局14） | 经典 |
 | ending_rescue_fail | 系统：你在交火中中弹身亡（市民结局15） | 经典 |
 | ending_safe | 系统：你留在教堂，最终被日军坑杀（市民结局16） | 经典 |
+| campaign_citizen_ending_door | 家门之外 · 还能关上的门的后来 | 经典 |
+| campaign_citizen_ending_rice | 家门之外 · 半袋米的账的后来 | 经典 |
+| campaign_citizen_ending_kin | 家门之外 · 分开的家人的后来 | 经典 |
+| campaign_citizen_ending_well | 家门之外 · 轮到哪一家的后来 | 经典 |
+| campaign_citizen_ending_roof | 家门之外 · 漏雨的铺位的后来 | 经典 |
+| campaign_citizen_ending_leave | 家门之外 · 搬走以后的后来 | 经典 |
+| campaign_citizen_ending_guard | 家门之外 · 相互照应 | 经典 |
+| campaign_citizen_ending_return | 家门之外 · 带回未竟之事 | 经典 |
+| campaign_citizen_ending_loss | 家门之外 · 代价与失散 | 经典 |
 
 ## 难民
 
@@ -51,6 +60,15 @@
 | ending_refugee_boat_escape | 系统：你逃亡过程中船漏水了，你被淹死了（难民结局8） | 经典 |
 | ending_refugee_boat2_escape | 系统：你没有抢到船，待在岸边被日军射杀（难民结局9） | 经典 |
 | ending_refugee_sewer | 系统：你在下水道被淹死（难民结局10） | 经典 |
+| campaign_refugee_ending_count | 带着一家人走 · 先点人数的后来 | 经典 |
+| campaign_refugee_ending_bundle | 带着一家人走 · 担子里的家当的后来 | 经典 |
+| campaign_refugee_ending_food | 带着一家人走 · 一家人的份额的后来 | 经典 |
+| campaign_refugee_ending_message | 带着一家人走 · 另一封家书的后来 | 经典 |
+| campaign_refugee_ending_bed | 带着一家人走 · 不再分开睡的后来 | 经典 |
+| campaign_refugee_ending_road | 带着一家人走 · 共同出发的时刻的后来 | 经典 |
+| campaign_refugee_ending_guard | 带着一家人走 · 相互照应 | 经典 |
+| campaign_refugee_ending_return | 带着一家人走 · 带回未竟之事 | 经典 |
+| campaign_refugee_ending_loss | 带着一家人走 · 代价与失散 | 经典 |
 
 ## 学生
 
@@ -64,6 +82,15 @@
 | ending_student_danger | 系统：你试图划船被巡逻发现并射杀（学生结局3） | 经典 |
 | ending_student_river_escape | 系统：你被士兵发现并射杀（学生结局4） | 经典 |
 | ending_student_secret_escape | 系统：你逃出城外被日军射杀（学生结局5） | 经典 |
+| campaign_student_ending_books | 书页以外的课 · 借出的书的后来 | 经典 |
+| campaign_student_ending_classmates | 书页以外的课 · 点名不等于找到的后来 | 经典 |
+| campaign_student_ending_notes | 书页以外的课 · 不能猜出的字的后来 | 经典 |
+| campaign_student_ending_children | 书页以外的课 · 给小川的一课的后来 | 经典 |
+| campaign_student_ending_translation | 书页以外的课 · 写给另一扇门的后来 | 经典 |
+| campaign_student_ending_archive | 书页以外的课 · 留下原件的后来 | 经典 |
+| campaign_student_ending_guard | 书页以外的课 · 相互照应 | 经典 |
+| campaign_student_ending_return | 书页以外的课 · 带回未竟之事 | 经典 |
+| campaign_student_ending_loss | 书页以外的课 · 代价与失散 | 经典 |
 
 ## 教师
 
@@ -77,6 +104,15 @@
 | ending_teacher_west_escape | 系统：你被士兵当场射杀（教师结局2） | 经典 |
 | ending_teacher_river_escape | 系统：你顺利划船进入长江，被日军汽艇扫射沉没（教师结局3） | 经典 |
 | ending_teacher_caught | 系统：你被士兵当场击毙（教师结局4） | 经典 |
+| campaign_teacher_ending_roll | 黑板后的名字 · 未到的人的后来 | 经典 |
+| campaign_teacher_ending_space | 黑板后的名字 · 课堂也要有门的后来 | 经典 |
+| campaign_teacher_ending_reading | 黑板后的名字 · 两个人一本书的后来 | 经典 |
+| campaign_teacher_ending_consent | 黑板后的名字 · 不是每个名字都能公开的后来 | 经典 |
+| campaign_teacher_ending_food | 黑板后的名字 · 课间的一份粮的后来 | 经典 |
+| campaign_teacher_ending_handover | 黑板后的名字 · 下一位老师的后来 | 经典 |
+| campaign_teacher_ending_guard | 黑板后的名字 · 相互照应 | 经典 |
+| campaign_teacher_ending_return | 黑板后的名字 · 带回未竟之事 | 经典 |
+| campaign_teacher_ending_loss | 黑板后的名字 · 代价与失散 | 经典 |
 
 ## 医生
 
@@ -90,6 +126,15 @@
 | ending_doctor_west_escape | 系统：药品被扔在地上，你被射杀（医生结局2） | 经典 |
 | ending_doctor_river_escape | 系统：逃跑途中被日军汽艇扫射，你中弹身亡（医生结局3） | 经典 |
 | ending_doctor_caught | 系统：你被巡逻士兵抓住并射杀（医生结局4） | 经典 |
+| campaign_doctor_ending_triage | 下一班的病历 · 先看哪些征象的后来 | 经典 |
+| campaign_doctor_ending_cloth | 下一班的病历 · 能用的布料的后来 | 经典 |
+| campaign_doctor_ending_records | 下一班的病历 · 病历里的原话的后来 | 经典 |
+| campaign_doctor_ending_water | 下一班的病历 · 照护前后的水的后来 | 经典 |
+| campaign_doctor_ending_move | 下一班的病历 · 担架两端的后来 | 经典 |
+| campaign_doctor_ending_night | 下一班的病历 · 可以交班的夜晚的后来 | 经典 |
+| campaign_doctor_ending_guard | 下一班的病历 · 相互照应 | 经典 |
+| campaign_doctor_ending_return | 下一班的病历 · 带回未竟之事 | 经典 |
+| campaign_doctor_ending_loss | 下一班的病历 · 代价与失散 | 经典 |
 
 ## 商人
 
@@ -107,6 +152,15 @@
 | ending_merchant_secret_escape | 系统：你沿秘密通道离开城市，逃亡途中被飞机炸死（商人结局6） | 经典 |
 | ending_merchant_dead | 系统：你在混乱中被土匪杀害（商人结局7） | 经典 |
 | ending_merchant_caught | 系统：你被日军抓住集体枪毙（商人结局8） | 经典 |
+| campaign_merchant_ending_stock | 账本与欠条 · 货还剩多少的后来 | 经典 |
+| campaign_merchant_ending_owner | 账本与欠条 · 不是所有东西都无主的后来 | 经典 |
+| campaign_merchant_ending_debt | 账本与欠条 · 欠条上的两种钱的后来 | 经典 |
+| campaign_merchant_ending_ration | 账本与欠条 · 门口的队伍的后来 | 经典 |
+| campaign_merchant_ending_barter | 账本与欠条 · 一笔双方听懂的交换的后来 | 经典 |
+| campaign_merchant_ending_handoff | 账本与欠条 · 把钥匙交出去的后来 | 经典 |
+| campaign_merchant_ending_guard | 账本与欠条 · 相互照应 | 经典 |
+| campaign_merchant_ending_return | 账本与欠条 · 带回未竟之事 | 经典 |
+| campaign_merchant_ending_loss | 账本与欠条 · 代价与失散 | 经典 |
 
 ## 农夫
 
@@ -123,6 +177,15 @@
 | ending_farmer_west_escape | 系统：你从西门小道溜出，被城墙上方士兵射杀（农夫结局4） | 经典 |
 | ending_farmer_river_escape | 系统：你在船上被日军飞机扫射死亡（农夫结局5） | 经典 |
 | ending_farmer_caught | 系统：你被巡逻士兵抓住并射杀（农夫结局6） | 经典 |
+| campaign_farmer_ending_grain | 把种子留到以后 · 种子不能全下锅的后来 | 经典 |
+| campaign_farmer_ending_tools | 把种子留到以后 · 仍能修的农具的后来 | 经典 |
+| campaign_farmer_ending_roots | 把种子留到以后 · 同乡的来处的后来 | 经典 |
+| campaign_farmer_ending_water | 把种子留到以后 · 牲口已不在身边的后来 | 经典 |
+| campaign_farmer_ending_bed | 把种子留到以后 · 草席铺在哪一边的后来 | 经典 |
+| campaign_farmer_ending_future | 把种子留到以后 · 还说得出的下一季的后来 | 经典 |
+| campaign_farmer_ending_guard | 把种子留到以后 · 相互照应 | 经典 |
+| campaign_farmer_ending_return | 把种子留到以后 · 带回未竟之事 | 经典 |
+| campaign_farmer_ending_loss | 把种子留到以后 · 代价与失散 | 经典 |
 
 ## 地下党员
 
@@ -140,6 +203,15 @@
 | ending_agent_action | 系统：你在突袭中壮烈牺牲（地下党员结局6） | 经典 |
 | ending_agent_hanjian | 系统：你当了狗汉奸，在睡梦中被勒死（地下党员结局7） | 经典 |
 | ending_agent_caught | 系统：你被日军抓获并砍头（地下党员结局8） | 经典 |
+| campaign_agent_ending_source | 口信的边界 · 只传知道的事的后来 | 经典 |
+| campaign_agent_ending_consent | 口信的边界 · 愿不愿意离开的后来 | 经典 |
+| campaign_agent_ending_route | 口信的边界 · 接应点还在不在的后来 | 经典 |
+| campaign_agent_ending_privacy | 口信的边界 · 副本该交给谁的后来 | 经典 |
+| campaign_agent_ending_family | 口信的边界 · 一次转移里的家属的后来 | 经典 |
+| campaign_agent_ending_relay | 口信的边界 · 下一位联络员的后来 | 经典 |
+| campaign_agent_ending_guard | 口信的边界 · 相互照应 | 经典 |
+| campaign_agent_ending_return | 口信的边界 · 带回未竟之事 | 经典 |
+| campaign_agent_ending_loss | 口信的边界 · 代价与失散 | 经典 |
 
 ## 孤儿
 
@@ -195,6 +267,15 @@
 | ending_hobo_survive | 系统：你靠装死活了下来（流浪汉结局4） | 经典 |
 | ending_hobo_rat | 系统：你成了下水道的国王（流浪汉结局5） | 经典 |
 | ending_hobo_traitor | 系统：你为了几个铜板出卖了尊严（流浪汉结局6） | 经典 |
+| campaign_hobo_ending_bowl | 无处落脚的人 · 一只不漏的碗的后来 | 经典 |
+| campaign_hobo_ending_fuel | 无处落脚的人 · 湿柴与干柴的后来 | 经典 |
+| campaign_hobo_ending_shelter | 无处落脚的人 · 桥洞里的界线的后来 | 经典 |
+| campaign_hobo_ending_trade | 无处落脚的人 · 能说清的交换的后来 | 经典 |
+| campaign_hobo_ending_names | 无处落脚的人 · 没人登记的人的后来 | 经典 |
+| campaign_hobo_ending_fire | 无处落脚的人 · 轮到谁守火的后来 | 经典 |
+| campaign_hobo_ending_guard | 无处落脚的人 · 相互照应 | 经典 |
+| campaign_hobo_ending_return | 无处落脚的人 · 带回未竟之事 | 经典 |
+| campaign_hobo_ending_loss | 无处落脚的人 · 代价与失散 | 经典 |
 
 ## 车夫
 
@@ -211,3 +292,12 @@
 | ending_driver_lost | 系统：你和家人走散了，孤独终老（车夫结局7） | 经典 |
 | ending_driver_killed | 系统：你被乱枪打死（车夫结局8） | 经典 |
 | ending_driver_poor | 系统：你失去了谋生工具，沦为乞丐（车夫结局9） | 经典 |
+| campaign_driver_ending_axle | 车轮留下的线 · 断轴以前的后来 | 经典 |
+| campaign_driver_ending_load | 车轮留下的线 · 谁先上车的后来 | 经典 |
+| campaign_driver_ending_map | 车轮留下的线 · 回程的门的后来 | 经典 |
+| campaign_driver_ending_fare | 车轮留下的线 · 没有钱的乘客的后来 | 经典 |
+| campaign_driver_ending_handoff | 车轮留下的线 · 车上的人去了哪里的后来 | 经典 |
+| campaign_driver_ending_relay | 车轮留下的线 · 下一双握车把的手的后来 | 经典 |
+| campaign_driver_ending_guard | 车轮留下的线 · 相互照应 | 经典 |
+| campaign_driver_ending_return | 车轮留下的线 · 带回未竟之事 | 经典 |
+| campaign_driver_ending_loss | 车轮留下的线 · 代价与失散 | 经典 |
