@@ -38,7 +38,7 @@ const types=['work','proof','care','reserve'];
 export function buildExpansion(identity,profile) {
  const root=`campaign_${identity}`,nodes={};
  const add=(key,step,chapter,text,actions)=>{
-  nodes[key]={chapter:`${profile.title} · ${chapter}`,location:profile.base,campaign:{step},text,choices:actions.map((a,i)=>({id:`${key}_${i}`,text:a.text,next:a.next,effect:a.effect??{},outcome:a.outcome,...(a.condition?{condition:a.condition,visibility:'locked'}:{})}))};
+  nodes[key]={chapter:`${profile.title} · ${chapter}`,location:profile.base,campaign:{step},text,choices:actions.map((a,i)=>({id:`${key}_${i}`,text:a.text,next:a.next,effect:a.effect??{},outcome:a.outcome,...(a.lockReason?{lockReason:a.lockReason}:{}),...(a.condition?{condition:a.condition,visibility:'locked'}:{})}))};
  };
  const first=`${root}_0_0`;
  add(`${root}_start`,0,'序章',`${profile.intro}\n\n六份托付连成一段路。你要走完所有章节，才能知道自己最终把什么留给了别人。`,[
@@ -48,7 +48,7 @@ export function buildExpansion(identity,profile) {
   const chapter=`第 ${c+1} 章 · ${m.title}`;
   scenes(m).forEach(([label,text,actions],s)=>{
    const key=`${root}_${c}_${s}`,next=s===31?`${root}_${c}_handoff`:`${root}_${c}_${s+1}`;
-   add(key,1+c*33+s,chapter,`${label}：${text}`,actions.map((text,i)=>({text,next,effect:{resources:i===0?{work:1,chapterWork:1}:i===1?{proof:1,chapterProof:1}:i===2?{care:1,kit:-1}:{kit:1},...(i===2?{health:-1}:i===3?{health:2}:{}),setFlags:Object.fromEntries(types.map((type,j)=>[`${root}_previous_${type}`,j===i]))},condition:i===2?{resources:{kit:1}}:undefined,outcome:`你选择了「${text}」。`+[`你把${m.goal}向前推进了一步，但没有额外照顾等候的人。`,`你补了一项可复查的依据，${m.evidence}的来路更清楚了。`,`你让需要照应的人少承担了一段困难，自己的储备减少了。`,'你保住了一份物资并恢复了体力，这一处工作留给后来的人。'][i]})));
+   add(key,1+c*33+s,chapter,`${label}：${text}`,actions.map((text,i)=>({text,next,effect:{resources:i===0?{work:1,chapterWork:1}:i===1?{proof:1,chapterProof:1}:i===2?{care:1,kit:-1}:{kit:1},...(i===2?{health:-1}:i===3?{health:2}:{}),setFlags:Object.fromEntries(types.map((type,j)=>[`${root}_previous_${type}`,j===i]))},condition:i===2?{minHealth:2,resources:{kit:1}}:undefined,outcome:`你选择了「${text}」。`+[`你把${m.goal}向前推进了一步，但没有额外照顾等候的人。`,`你补了一项可复查的依据，${m.evidence}的来路更清楚了。`,`你让需要照应的人少承担了一段困难，自己的储备减少了。`,'你保住了一份物资并恢复了体力，这一处工作留给后来的人。'][i]})));
    nodes[key].variants=types.map(type=>({condition:{hasFlag:`${root}_previous_${type}`},text:{work:`上一步落实了工作，${m.contact}继续等待接下来的安排。`,proof:`你已经核对过上一处疑点；${m.recipient}需要知道这些记录如何保存。`,care:`上一处求助得到了回应，${m.helper}提醒你别把自己的体力用尽。`,reserve:'你保留了余力，但有些事情还没有做完。'}[type]}));
   });
   const next=c===5?`${root}_epilogue_0`:`${root}_${c+1}_0`;
@@ -58,10 +58,10 @@ export function buildExpansion(identity,profile) {
    {text:'带回剩余物资，留下尚未完成的记录',next,effect:{endCampaignChapter:true,resources:{kit:2},setFlags:{[`${root}_done_${c}`]:false}},outcome:'你选择保留余力，交接记录明确标出了未竟之事。'}]);
  });
  const epilogues=[['回望','六章中的人和物件不会因你离开就消失。你只能决定先回应哪一项。'],['存放','剩余物资需要放在有人能找到的地方，也可能因此不再属于你。'],['名单','有的人不愿公开名字，有的人怕被遗忘。记录需要征得同意。'],['去向','消息已经过时，你要判断仍可使用哪一部分，而不是假定目的地永久安全。'],['边界','几份工作都希望你留下。你的体力不足以同时承担全部责任。'],['同行','继续上路的人正在会合；留下的人也需要接替的帮手。'],['底线','有人提出一条没有核实、也没有接应的捷径。这一次风险会影响最后的去向。'],['最后准备','告别前还可以整理一次记录或物资，选择以后要承担的生活。']];
- epilogues.forEach(([title,text],s)=>add(`${root}_epilogue_${s}`,199+s,'尾声',`${title}：${text}`,types.map((type,i)=>({text:[`落实${profile.missions[s%6].title}的接续工作`,'再核实一次记录和去向','把余力留给互相照应的人','留住物资，准备独自转移'][i],next:s===7?`${root}_decision`:`${root}_epilogue_${s+1}`,effect:{resources:i===0?{work:1,chapterWork:1}:i===1?{proof:1}:i===2?{care:2,kit:-1}:{kit:1},...(s===6?{setFlags:{[`${root}_unprotected`]:i===3}}:{}),...(i===3?{health:2}:{})},condition:i===2?{resources:{kit:1}}:undefined,outcome:s===6&&i===3?'你没有核实接应，带着物资独自转移。这条路可能导致失散。':['你安排了下一位接手者。','你把未证实的传言从记录中剔除。','你给共同照应的人留下了一份物资。','你保住了自己的备用物资。'][i]}))));
- const finales=profile.missions.map((m,c)=>({kind:m.id,title:m.endingTitle,text:`你走过了六份托付，最后选择以「${m.title}」的后续工作作为今后的责任。${m.ending}`,condition:{hasFlag:`${root}_done_${c}`}}));
- finales.push({kind:'guard',title:'相互照应',text:profile.endings.guard,condition:{resources:{care:40}}},{kind:'return',title:'带回未竟之事',text:profile.endings.return},{kind:'loss',title:'代价与失散',text:profile.endings.loss,condition:{hasFlag:`${root}_unprotected`}});
- add(`${root}_decision`,207,'最终抉择','你已经走完六章。哪些承诺兑现、记录是否可靠、谁得到照应，都决定哪些生活还可能继续。请选择你最终承担的去向。',finales.map(f=>({text:`选择「${f.title}」`,next:`${root}_ending_${f.kind}`,condition:f.condition,outcome:f.text})));
+ epilogues.forEach(([title,text],s)=>add(`${root}_epilogue_${s}`,199+s,'尾声',`${title}：${text}`,types.map((type,i)=>({text:[`落实${profile.missions[s%6].title}的接续工作`,'再核实一次记录和去向','把余力留给互相照应的人','留住物资，准备独自转移'][i],next:s===7?`${root}_decision`:`${root}_epilogue_${s+1}`,effect:{resources:i===0?{work:1,chapterWork:1}:i===1?{proof:1}:i===2?{care:2,kit:-1}:{kit:1},...(s===6?{setFlags:{[`${root}_unprotected`]:i===3}}:{}),...(i===3?{health:2}:{})},condition:i===2?{minHealth:2,resources:{kit:1}}:undefined,outcome:s===6&&i===3?'你没有核实接应，带着物资独自转移。这条路可能导致失散。':['你安排了下一位接手者。','你把未证实的传言从记录中剔除。','你给共同照应的人留下了一份物资。','你保住了自己的备用物资。'][i]}))));
+ const finales=profile.missions.map((m,c)=>({kind:m.id,title:m.endingTitle,text:`你走过了六份托付，最后选择以「${m.title}」的后续工作作为今后的责任。${m.ending}`,condition:{hasFlag:`${root}_done_${c}`},lockReason:`需要先落实「${m.title}」的章节交接`}));
+ finales.push({kind:'guard',title:'相互照应',text:profile.endings.guard,condition:{resources:{care:40}}},{kind:'return',title:'带回未竟之事',text:profile.endings.return},{kind:'loss',title:'代价与失散',text:profile.endings.loss,condition:{hasFlag:`${root}_unprotected`},lockReason:'需要先选择未经核实且无人接应的去向'});
+ add(`${root}_decision`,207,'最终抉择','你已经走完六章。哪些承诺兑现、记录是否可靠、谁得到照应，都决定哪些生活还可能继续。请选择你最终承担的去向。',finales.map(f=>({text:`选择「${f.title}」`,next:`${root}_ending_${f.kind}`,condition:f.condition,lockReason:f.lockReason,effect:f.kind==='loss'?{health:-25}:{},outcome:f.text})));
  finales.forEach(f=>{nodes[`${root}_ending_${f.kind}`]={chapter:profile.title,campaign:{step:208},ending:{title:`${profile.title} · ${f.title}`,kind:f.kind},text:f.text,choices:[]};});
  return {nodes,entry:{id:`${root}_enter`,text:`进入完整长篇：${profile.title}（208 次决策）`,next:`${root}_start`,effect:{startCampaign:true}}};
 }

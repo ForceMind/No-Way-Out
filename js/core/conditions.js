@@ -1,6 +1,6 @@
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const name = value => typeof value === 'string' && value.trim().length > 0;
-const names = { food: '食物', water: '饮水' };
+const names = { food: '食物', water: '饮水',kit:'物资',work:'落实',proof:'核验',care:'互助',chapterWork:'本章落实',chapterProof:'本章核验' };
 
 export function conditionErrors(condition) {
     if (condition === undefined) return [];

@@ -27,7 +27,9 @@ jobs:
           python -m pip install -r tests/requirements.txt
           python -m playwright install --with-deps chromium
       - name: Game and editor regression
-        run: python tests/e2e/smoke.py
+        run: |
+          python tests/e2e/smoke.py
+          python tests/e2e/campaigns.py
       - name: Package and verify static paths
         run: |
           python scripts/build-release.py

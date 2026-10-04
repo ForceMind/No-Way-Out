@@ -45,6 +45,10 @@ export function validateStories(stories, identities, { initialItems = {} } = {})
                 continue;
             }
             if (node.choices.length === 0) stats.endings++;
+            if(node.campaign!==undefined) {
+                if(!object(node.campaign)||!Number.isInteger(node.campaign.step)||node.campaign.step<0||node.campaign.step>208) issue(errors,'campaign',path,'长篇场景序号须为 0–208 整数');
+                if(node.choices.length===0?node.campaign?.step!==208:node.choices.length<2) issue(errors,'campaign',path,'长篇只能在第 208 次决策后结束，场景须为多选');
+            }
             if (node.archived !== undefined && typeof node.archived !== 'boolean') issue(errors,'archive',path,'archived 必须为布尔值');
             if (node.archived && (!nonempty(node.archiveReason) || node.choices.length)) issue(errors,'archive',path,'归档必须是无选项节点，并填写归档原因');
             if(node.variants!==undefined) {
@@ -66,12 +70,14 @@ export function validateStories(stories, identities, { initialItems = {} } = {})
                     if (!nonempty(choice.id) || choiceIds.has(choice.id)) issue(errors,'choice-id',choicePath,'选项 ID 必须非空，且在节点内唯一');
                     choiceIds.add(choice.id);
                 }
+                if(choice.lockReason!==undefined&&!nonempty(choice.lockReason)) issue(errors,'lock-reason',choicePath,'锁定提示必须为非空文本');
                 if(choice.outcome!==undefined&&!nonempty(choice.outcome)) issue(errors,'outcome',choicePath,'行动后果必须为非空文本');
                 if (choice.strenuous !== undefined && typeof choice.strenuous !== 'boolean') issue(errors,'choice',choicePath,'strenuous 必须为布尔值');
                 if (choice.visibility !== undefined && !['locked','secret'].includes(choice.visibility)) issue(errors,'choice',choicePath,'visibility 必须为 locked 或 secret');
                 if (!nonempty(choice.next) || !Object.hasOwn(nodes, choice.next) || !object(nodes[choice.next])) {
                     issue(errors, 'target', choicePath, `跳转目标不存在：${String(choice.next)}`);
                 }
+                if(node.campaign && nodes[choice.next]?.campaign?.step!==node.campaign.step+1) issue(errors,'campaign',choicePath,'长篇行动不可跳章、循环或提前结束');
                 if (choice.condition !== undefined) {
                     for (const message of conditionErrors(choice.condition)) issue(errors, 'condition', choicePath, message);
                     if (nonempty(choice.condition?.hasItem) && !sources.has(choice.condition.hasItem)) issue(warnings, 'item-source', choicePath, `当前身份缺少物品获取来源：${choice.condition.hasItem}`);

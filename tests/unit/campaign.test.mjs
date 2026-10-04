@@ -6,6 +6,7 @@ import {createCampaignState} from '../../js/core/campaign.js';
 import {createSave,decodeSave} from '../../js/core/save-store.js';
 import {stateErrors} from '../../js/core/state.js';
 import {describeNode} from '../../js/core/narrative.js';
+import {validateStories} from '../../js/core/story-validator.js';
 import {walkCampaign} from '../../scripts/campaign-routes.mjs';
 test('all twelve identities provide complete long campaigns',()=>assert.equal(ids.length,12));
 const ids=Object.keys(storyData).filter(id=>storyData[id][`campaign_${id}_start`]);
@@ -52,4 +53,28 @@ test('campaign history records the actual conditional narrative and outcome',()=
  assert.ok(displayed.includes('你已经核对过上一处疑点'));
  const next=transition(second,{nodeKey:second.currentNode,choiceIndex:3},storyData);
  assert.equal(next.state.history.at(-1).nodeText,displayed);assert.ok(next.state.history.at(-1).outcome);
+});
+
+test('campaign editor validation rejects skipping a chapter or replacing scenes with a page turn',()=>{
+ const nodes=structuredClone(storyData.orphan);
+ nodes.campaign_orphan_start.choices[0].next='campaign_orphan_decision';
+ nodes.campaign_orphan_0_0.choices=nodes.campaign_orphan_0_0.choices.slice(0,1);
+ assert.ok(validateStories({orphan:nodes},[{id:'orphan'}]).errors.filter(e=>e.code==='campaign').length>=2);
+});
+test('chapter success cannot use only the work/proof accumulated in previous chapters',()=>{
+ let state=createCampaignState('orphan');
+ for(let count=0;count<34;count++) {
+  const node=storyData.orphan[state.currentNode];
+  const stage=Number(state.currentNode.split('_').at(-1));
+  const i=state.currentNode.endsWith('_start')||state.currentNode.endsWith('_handoff')?0:stage<8?0:stage<13?1:3;
+  const result=transition(state,{nodeKey:state.currentNode,choiceIndex:i},storyData,{now:()=>1});assert.equal(result.ok,true);state=result.state;
+ }
+ assert.equal(state.currentNode,'campaign_orphan_1_0');assert.ok(state.resources.work>=5);assert.equal(state.resources.chapterWork,0);assert.equal(state.resources.chapterProof,0);
+});
+
+test('a classic-mode save cannot bypass campaign progress validation',()=>{
+ const forged={...createCampaignState('orphan'),ruleset:'classic',currentNode:'campaign_orphan_decision'};
+ assert.ok(stateErrors(forged,storyData).length);
+ assert.equal(decodeSave(createSave(forged),storyData).ok,false);
+ assert.equal(transition(forged,{nodeKey:forged.currentNode,choiceIndex:7},storyData).ok,false);
 });

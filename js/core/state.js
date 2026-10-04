@@ -39,6 +39,7 @@ export function stateErrors(state, stories) {
         if (key === 'flags' ? Object.values(value).some(v => typeof v !== 'boolean') : Object.values(value).some(v => !Number.isInteger(v) || v < 0)) errors.push(`${key} 内容无效`);
     }
     if (state.ruleset !== undefined && !['classic','survival-v1','campaign-v1'].includes(state.ruleset)) errors.push('未知章节规则');
+    if(nodes?.[state.currentNode]?.campaign && state.ruleset!=='campaign-v1') errors.push('完整长篇必须使用长篇决策规则');
     if(state.ruleset==='campaign-v1') {
         const count=state.campaign?.decisions;
         if(!Number.isInteger(count)||count<0||count>208 || nodes?.[state.currentNode]?.campaign?.step!==count || !state.currentNode?.startsWith(`campaign_${state.currentIdentity}_`)) errors.push('长篇决策进度无效');

@@ -1,6 +1,8 @@
 import { identities, storyData } from './data.js';
 import { ParticleSystem, AudioManager } from './effects.js';
 import { writeJSON, readVolume, saveSlot, loadSlot, listSlots } from './core/save-store.js';
+import {createCampaignState} from './core/campaign.js';
+import {describeNode} from './core/narrative.js';
 import { createState, transition } from './core/engine.js';
 import { checkCondition } from './core/conditions.js';
 import { readEndings, collectEnding } from './ui/endings.js';
@@ -265,7 +267,9 @@ class Game {
             const section = document.createElement('section');
             const passage = document.createElement('p'); passage.textContent = entry.nodeText;
             const action = document.createElement('p'); action.textContent = `你的选择：${entry.text}`; action.className = 'history-choice';
-            section.append(passage, action); list.append(section);
+            section.append(passage, action);
+            if(entry.outcome){const outcome=document.createElement('p');outcome.textContent=`行动后果：${entry.outcome}`;section.append(outcome);}
+            list.append(section);
         }
         document.getElementById('history-modal').showModal();
     }
@@ -376,10 +380,10 @@ class Game {
     }
 
     startGame() {
-        this.state = createState(this.state.currentIdentity);
+        this.state = document.getElementById('story-mode').value==='legacy' ? createState(this.state.currentIdentity) : createCampaignState(this.state.currentIdentity);
         this.updateStatus();
         this.showScreen('game');
-        this.playNode('start');
+        this.playNode(this.state.currentNode);
         this.autoSave();
     }
 
@@ -399,7 +403,7 @@ class Game {
         this.elements.choicesArea.innerHTML = '';
         
         // 打字机效果显示文本
-        this.typewriter(node.text, () => {
+        this.typewriter(describeNode(node,this.state), () => {
             this.transitioning = false;
             this.renderChoices(node.choices);
         });
@@ -412,7 +416,7 @@ class Game {
          this.elements.choicesArea.innerHTML = '';
         
          // 打字机效果显示文本
-         this.typewriter(node.text, () => {
+         this.typewriter(describeNode(node,this.state), () => {
              this.transitioning = false;
              this.renderChoices(node.choices);
          });
@@ -447,7 +451,7 @@ class Game {
             if (!condition.allowed && choice.visibility !== 'locked' && !choice.strenuous) return;
 
             const btn = document.createElement('button');
-            btn.textContent = condition.allowed ? choice.text : `${choice.text}（${condition.reason}）`;
+            btn.textContent = condition.allowed ? choice.text : `${choice.text}（${choice.lockReason??condition.reason}）`;
             btn.disabled = !condition.allowed;
             btn.classList.add('choice-btn', 'fade-in');
             btn.addEventListener('click', () => this.handleChoice({ nodeKey, choiceIndex }));
@@ -491,8 +495,9 @@ class Game {
 
     updateStatus() {
         const survival=document.getElementById('survival-status');
-        survival.hidden=this.state.ruleset !== 'survival-v1';
-        if(!survival.hidden) survival.textContent=`第 ${this.state.clock.day} 天 · ${['清晨','午后','夜晚'][this.state.clock.period]} · 食物 ${this.state.resources.food} · 饮水 ${this.state.resources.water} · 饥饿 ${this.state.hunger} · 疲劳 ${this.state.fatigue}`;
+        survival.hidden=!['survival-v1','campaign-v1'].includes(this.state.ruleset);
+        if(this.state.ruleset==='campaign-v1') survival.textContent=`完整长篇 · 已选择 ${this.state.campaign.decisions} / 208 次 · 物资 ${this.state.resources.kit} · 互助 ${this.state.resources.care} · 本章落实 ${this.state.resources.chapterWork} / 5 · 本章核验 ${this.state.resources.chapterProof} / 3`;
+        if(this.state.ruleset==='survival-v1') survival.textContent=`第 ${this.state.clock.day} 天 · ${['清晨','午后','夜晚'][this.state.clock.period]} · 食物 ${this.state.resources.food} · 饮水 ${this.state.resources.water} · 饥饿 ${this.state.hunger} · 疲劳 ${this.state.fatigue}`;
         this.elements.healthDisplay.textContent = `生命：${this.state.health}`;
         if (this.elements.sanityDisplay) {
             this.elements.sanityDisplay.textContent = `理智：${this.state.sanity}`;

@@ -76,6 +76,7 @@ def run_smoke(repository, base, browser_path):
                 farmer = context.new_page()
                 observe(farmer)
                 farmer.goto(base, wait_until="networkidle")
+                farmer.locator("#story-mode").select_option("legacy")
                 farmer.locator("#start-btn").click()
                 farmer.locator("#identity-list").get_by_role("button", name="农夫", exact=True).click()
                 farmer.locator("#confirm-identity").click()
@@ -105,6 +106,7 @@ def run_smoke(repository, base, browser_path):
                 page.locator("#choices-area").get_by_role("button", name=text, exact=True).click()
                 wait_node(next_node)
 
+            page.locator("#story-mode").select_option("legacy")
             page.locator("#start-btn").click()
             expect(page.locator("#identity-screen")).to_be_visible()
             expect(page.locator(".identity-btn")).to_have_count(12)
@@ -163,6 +165,7 @@ def run_smoke(repository, base, browser_path):
             expect(page.locator("#title-screen")).to_be_visible()
             print("PASS: save/load across reload, persisted volume settings and ending/menu flow", flush=True)
 
+            page.locator("#story-mode").select_option("legacy")
             page.locator("#start-btn").click()
             page.locator("#identity-list").get_by_role("button", name="普通市民", exact=True).click()
             page.locator("#confirm-identity").click()
@@ -351,6 +354,7 @@ def run_smoke(repository, base, browser_path):
             observe(full)
             full.add_init_script("Storage.prototype.setItem = function() { throw new DOMException('Storage full', 'QuotaExceededError'); };")
             full.goto(base, wait_until="networkidle")
+            full.locator("#story-mode").select_option("legacy")
             full.locator("#start-btn").click()
             full.locator("#identity-list").get_by_role("button", name="普通市民", exact=True).click()
             full.locator("#confirm-identity").click()
@@ -373,6 +377,7 @@ def run_smoke(repository, base, browser_path):
                 reader.locator("#reduced-motion").check()
                 reader.keyboard.press("Escape")
                 expect(reader.locator("#settings-modal")).not_to_be_visible()
+                reader.locator("#story-mode").select_option("legacy")
                 reader.locator("#start-btn").click()
                 reader.locator("#identity-list").get_by_role("button", name="普通市民", exact=True).click()
                 reader.locator("#confirm-identity").click()
@@ -412,6 +417,7 @@ def run_smoke(repository, base, browser_path):
             skip_page = skip_context.new_page()
             observe(skip_page)
             skip_page.goto(base, wait_until="networkidle")
+            skip_page.locator("#story-mode").select_option("legacy")
             skip_page.locator("#start-btn").click()
             skip_page.locator("#identity-list").get_by_role("button",name="普通市民",exact=True).click()
             skip_page.locator("#confirm-identity").click()
@@ -434,6 +440,7 @@ def run_smoke(repository, base, browser_path):
             ]
             for route,ending in routes:
                 survival_page.goto(base,wait_until="networkidle")
+                survival_page.locator("#story-mode").select_option("legacy")
                 survival_page.locator("#start-btn").click()
                 survival_page.locator("#identity-list").get_by_role("button",name="普通市民",exact=True).click()
                 survival_page.locator("#confirm-identity").click()
@@ -465,6 +472,7 @@ def run_smoke(repository, base, browser_path):
             classic_page.add_init_script("localStorage.setItem('nw_preferences',JSON.stringify({speed:0,fontSize:20,reducedMotion:true}));localStorage.setItem('nw_volume',JSON.stringify({bgm:0,sfx:0}));")
             for route in classic_routes:
                 classic_page.goto(base,wait_until="networkidle")
+                classic_page.locator("#story-mode").select_option("legacy")
                 classic_page.locator("#start-btn").click()
                 identity=next(item for item in data["identities"] if item["id"]==route["identity"])
                 classic_page.locator("#identity-list").get_by_role("button",name=identity["name"],exact=True).click()
@@ -485,6 +493,7 @@ def run_smoke(repository, base, browser_path):
             future_auto=json.dumps({"saveVersion":999,"contentVersion":"future","state":{}})
             protected.add_init_script(f"localStorage.setItem('nw_save_v2_auto',{json.dumps(future_auto)}); localStorage.setItem('nw_preferences',JSON.stringify({{speed:0,fontSize:20,reducedMotion:true}}));")
             protected.goto(base,wait_until="networkidle")
+            protected.locator("#story-mode").select_option("legacy")
             protected.locator("#start-btn").click()
             protected.locator("#identity-list").get_by_role("button",name="普通市民",exact=True).click()
             protected.locator("#confirm-identity").click()

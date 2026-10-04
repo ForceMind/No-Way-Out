@@ -1,3 +1,5 @@
+import {createCampaignState} from '../core/campaign.js';
+import {describeNode} from '../core/narrative.js';
 
     import { identities, storyData } from '../data.js';
     import { buildNodeDraft, DraftError } from './model.js';
@@ -253,15 +255,16 @@
     };
     let previewState;
     function previewRestart() {
-        previewState=createState(currentIdentity);previewState.currentNode=currentNodeKey;
+        if(currentData[currentIdentity][currentNodeKey]?.campaign) previewState=createCampaignState(currentIdentity);
+        else {previewState=createState(currentIdentity);previewState.currentNode=currentNodeKey;}
         previewState.inventory=document.getElementById('preview-items').value.split(/[,，]/).map(value=>value.trim()).filter(Boolean);renderPreview();
     }
     function renderPreview() {
         const node=currentData[previewState.currentIdentity][previewState.currentNode];
-        document.getElementById('preview-text').textContent=node.text;
-        document.getElementById('preview-status').textContent=`${previewState.currentNode} · 生命 ${previewState.health} · 理智 ${previewState.sanity}`;
+        document.getElementById('preview-text').textContent=describeNode(node,previewState);
+        document.getElementById('preview-status').textContent=`${previewState.ruleset==='campaign-v1'?`完整长篇从序章建立进度 · 已选择 ${previewState.campaign.decisions} 次 · `:''}${previewState.currentNode} · 生命 ${previewState.health} · 理智 ${previewState.sanity}`;
         const choices=document.getElementById('preview-choices');choices.replaceChildren();
-        node.choices.forEach((choice,index)=>{const button=document.createElement('button');const condition=choice.strenuous && previewState.ruleset==='survival-v1' && previewState.fatigue>=80 ? {allowed:false,reason:'疲劳过高'} : checkCondition(choice.condition,previewState);button.textContent=choice.text+(condition.allowed?'':`（${condition.reason}）`);button.disabled=!condition.allowed;button.onclick=()=>{const result=transition(previewState,{nodeKey:previewState.currentNode,choiceIndex:index},currentData);if(result.ok){previewState=result.state;renderPreview();}else showError(new Error(result.reason));};choices.append(button);});
+        node.choices.forEach((choice,index)=>{const button=document.createElement('button');const condition=choice.strenuous && previewState.ruleset==='survival-v1' && previewState.fatigue>=80 ? {allowed:false,reason:'疲劳过高'} : checkCondition(choice.condition,previewState);button.textContent=choice.text+(condition.allowed?'':`（${choice.lockReason??condition.reason}）`);button.disabled=!condition.allowed;button.onclick=()=>{const result=transition(previewState,{nodeKey:previewState.currentNode,choiceIndex:index},currentData);if(result.ok){previewState=result.state;renderPreview();}else showError(new Error(result.reason));};choices.append(button);});
         if(!node.choices.length)choices.textContent='此节点为结局。';
     }
     document.getElementById('preview-btn').onclick=()=>{if(isDirty()){showError(new Error('请先保存节点，再预览'));return;}previewRestart();document.getElementById('preview-modal').showModal();};
