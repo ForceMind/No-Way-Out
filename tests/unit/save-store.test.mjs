@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readJSON, writeJSON, readVolume, decodeLegacySave } from '../../js/core/save-store.js';
+import { readJSON, writeJSON, readVolume, decodeLegacySave, createSave, decodeSave, saveSlot, loadSlot, listSlots } from '../../js/core/save-store.js';
 
 const stories = { citizen: { start: { text: '开始', choices: [] } } };
 const saved = () => ({ state: { currentIdentity: 'citizen', currentNode: 'start', inventory: ['水'], health: 90, sanity: 100, history: [] }, timestamp: 1 });
@@ -52,4 +52,85 @@ test('invalid identities, inherited nodes and malformed states cannot replace th
         assert.equal(decodeLegacySave(original, stories).ok, false, key);
     }
     assert.equal(decodeLegacySave({ state: null }, stories).ok, false);
+});
+
+const memory = () => {
+    const values = new Map();
+    return { values, getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) };
+};
+
+test('legacy migration is idempotent and preserves the original record', () => {
+    const provider = memory();
+    const raw = JSON.stringify(saved());
+    provider.setItem('nw_save', raw);
+    const first = loadSlot('manual-1', stories, { provider });
+    assert.equal(first.ok, true);
+    assert.equal(first.migrated, true);
+    assert.equal(first.record.saveVersion, 2);
+    assert.equal(provider.getItem('nw_save'), raw);
+    const second = loadSlot('manual-1', stories, { provider });
+    assert.equal(second.migrated, false);
+    assert.deepEqual(second.state, first.state);
+});
+
+test('unknown save/content versions are rejected without changing storage', () => {
+    for (const change of [{ saveVersion: 999 }, { contentVersion: 'future-content' }]) {
+        const provider = memory();
+        const raw = JSON.stringify({ ...createSave(saved().state, { now: () => 1 }), ...change });
+        provider.setItem('nw_save_v2_manual-1', raw);
+        assert.equal(loadSlot('manual-1', stories, { provider }).ok, false);
+        assert.equal(provider.getItem('nw_save_v2_manual-1'), raw);
+    }
+});
+
+test('automatic and three manual slots are independent', () => {
+    const provider = memory();
+    for (const [index, slot] of ['auto', 'manual-1', 'manual-2', 'manual-3'].entries()) {
+        assert.equal(saveSlot(slot, { ...saved().state, health: 90 - index }, stories, { provider, now: () => index }).ok, true);
+    }
+    assert.deepEqual(listSlots(stories, { provider }).map(row => row.state.health), [90, 89, 88, 87]);
+    assert.equal(saveSlot('arbitrary', saved().state, stories, { provider }).ok, false);
+});
+
+test('corrupt primary saves do not silently fall back to or overwrite legacy data', () => {
+    const provider = memory();
+    const legacy = JSON.stringify(saved());
+    provider.setItem('nw_save', legacy);
+    provider.setItem('nw_save_v2_manual-1', '{broken');
+    assert.equal(loadSlot('manual-1', stories, { provider }).reason, 'invalid-json');
+    assert.equal(provider.getItem('nw_save'), legacy);
+    assert.equal(provider.getItem('nw_save_v2_manual-1'), '{broken');
+});
+
+test('listing old saves does not write a migrated record', () => {
+    const provider = memory();
+    provider.setItem('nw_save', JSON.stringify(saved()));
+    assert.equal(listSlots(stories, { provider })[1].ok, true);
+    assert.equal(provider.values.has('nw_save_v2_manual-1'), false);
+});
+
+test('a valid legacy save remains playable when migration cannot be written', () => {
+    const raw = JSON.stringify(saved());
+    const provider = { getItem: key => key === 'nw_save' ? raw : null, setItem: () => { throw new Error('quota'); } };
+    const result = loadSlot('manual-1', stories, { provider });
+    assert.equal(result.ok, true);
+    assert.equal(result.warning, 'migration-not-saved');
+    assert.equal(result.state.health, 90);
+    assert.equal(provider.getItem('nw_save'), raw);
+});
+
+test('only explicit node aliases migrate renamed references', () => {
+    const record = createSave({ ...saved().state, currentNode: 'old-start' }, { now: () => 1 });
+    assert.equal(decodeSave(record, stories).ok, false);
+    const migrated = decodeSave(record, stories, { aliases: { citizen: { 'old-start': 'start' } } });
+    assert.equal(migrated.ok, true);
+    assert.equal(migrated.state.currentNode, 'start');
+    assert.equal(record.state.currentNode, 'old-start');
+});
+
+test('malformed history entries and negative save timestamps are rejected', () => {
+    const record = createSave(saved().state, { now: () => 1 });
+    record.state.history = [42];
+    assert.equal(decodeSave(record, stories).ok, false);
+    assert.equal(decodeSave({ ...createSave(saved().state), savedAt: -1 }, stories).ok, false);
 });

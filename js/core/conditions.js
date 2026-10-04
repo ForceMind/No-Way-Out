@@ -28,12 +28,13 @@ export function checkCondition(condition, state) {
     if (condition.minHealth !== undefined && state.health < condition.minHealth) return { allowed: false, reason: `生命需要达到 ${condition.minHealth}` };
     if (condition.minSanity !== undefined && state.sanity < condition.minSanity) return { allowed: false, reason: `理智需要达到 ${condition.minSanity}` };
     if (condition.maxFatigue !== undefined && (state.fatigue ?? 0) > condition.maxFatigue) return { allowed: false, reason: '过于疲劳，需要休息' };
-    if (condition.hasFlag && state.flags?.[condition.hasFlag] !== true) return { allowed: false, reason: '尚未完成前置事件' };
+    if (condition.hasFlag && (!Object.hasOwn(state.flags ?? {}, condition.hasFlag) || state.flags[condition.hasFlag] !== true)) return { allowed: false, reason: '尚未完成前置事件' };
     for (const [flag, value] of Object.entries(condition.flags ?? {})) {
-        if ((state.flags?.[flag] ?? false) !== value) return { allowed: false, reason: '尚未满足前置事件' };
+        if ((Object.hasOwn(state.flags ?? {}, flag) ? state.flags[flag] : false) !== value) return { allowed: false, reason: '尚未满足前置事件' };
     }
     for (const [resource, amount] of Object.entries(condition.resources ?? {})) {
-        if ((state.resources?.[resource] ?? 0) < amount) return { allowed: false, reason: `${names[resource] ?? resource}不足，需要 ${amount} 份` };
+        const available = Object.hasOwn(state.resources ?? {}, resource) ? state.resources[resource] : 0;
+        if (available < amount) return { allowed: false, reason: `${Object.hasOwn(names, resource) ? names[resource] : resource}不足，需要 ${amount} 份` };
     }
     return { allowed: true, reason: '' };
 }

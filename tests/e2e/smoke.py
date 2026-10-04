@@ -87,7 +87,7 @@ def run_smoke(repository, base, browser_path):
                 if item:
                     expect(farmer.locator("#inventory-display")).to_have_text(item)
                 farmer.locator("#save-btn").click()
-                farmer_save = farmer.evaluate("JSON.parse(localStorage.getItem('nw_save'))")
+                farmer_save = farmer.evaluate("JSON.parse(localStorage.getItem('nw_save_v2_manual-1'))")
                 assert len(farmer_save["state"]["history"]) == 1
                 assert farmer_save["state"]["history"][0]["to"] == target
                 farmer.close()
@@ -127,7 +127,10 @@ def run_smoke(repository, base, browser_path):
             print("PASS: identity selection, story choices, inventory, health and BGM playback", flush=True)
 
             page.locator("#save-btn").click()
-            saved = page.evaluate("JSON.parse(localStorage.getItem('nw_save'))")
+            saved = page.evaluate("JSON.parse(localStorage.getItem('nw_save_v2_manual-1'))")
+            assert saved["saveVersion"] == 2
+            automatic = page.evaluate("JSON.parse(localStorage.getItem('nw_save_v2_auto'))")
+            assert automatic["state"] == saved["state"]
             assert saved["state"]["currentIdentity"] == "citizen"
             assert saved["state"]["currentNode"] == "day1_night"
             assert saved["state"]["health"] == 90
@@ -246,6 +249,8 @@ def run_smoke(repository, base, browser_path):
                 ("nw_volume", "{broken", None),
                 ("nw_save", "{broken", "存档无法读取"),
                 ("nw_save", json.dumps({"state": {"currentIdentity": "absent"}}), "存档内容无效"),
+                ("nw_save_v2_manual-1", json.dumps({**saved, "saveVersion": 999}), "存档版本不兼容"),
+                ("nw_save_v2_manual-1", json.dumps({**saved, "contentVersion": "future-content"}), "存档版本不兼容"),
             ]:
                 isolated = browser.new_context()
                 broken = isolated.new_page()
@@ -262,6 +267,22 @@ def run_smoke(repository, base, browser_path):
                     expect(broken.locator("#sfx-volume")).to_have_value("0.5")
                 assert broken.evaluate("key => localStorage.getItem(key)", key) == raw
                 isolated.close()
+
+            isolated = browser.new_context()
+            legacy_page = isolated.new_page()
+            observe(legacy_page)
+            legacy_raw = json.dumps({"state": saved["state"], "timestamp": 123})
+            legacy_page.add_init_script(f"localStorage.setItem('nw_save', {json.dumps(legacy_raw)});")
+            legacy_page.goto(base, wait_until="networkidle")
+            legacy_page.locator("#load-btn-title").click()
+            legacy_page.wait_for_function("!document.querySelector('#dialogue-text').classList.contains('cursor')")
+            expect(legacy_page.locator("#health-display")).to_have_text("生命：90")
+            migrated = legacy_page.evaluate("JSON.parse(localStorage.getItem('nw_save_v2_manual-1'))")
+            assert migrated["saveVersion"] == 2
+            assert migrated["state"] == saved["state"]
+            assert legacy_page.evaluate("localStorage.getItem('nw_save')") == legacy_raw
+            isolated.close()
+            print("PASS: legacy saves migrate without reapplying effects or overwriting the original record; future versions are rejected", flush=True)
 
             isolated = browser.new_context()
             full = isolated.new_page()

@@ -27,9 +27,9 @@ export function applyEffects(state, effect = {}) {
     const next = structuredClone(state);
     const events = [];
     for (const [resource, amount] of Object.entries(effect.resources ?? {})) {
-        const value = (next.resources[resource] ?? 0) + amount;
+        const value = (Object.hasOwn(next.resources, resource) ? next.resources[resource] : 0) + amount;
         if (value < 0) return { ok: false, reason: '资源不足，行动未执行' };
-        next.resources[resource] = value;
+        next.resources = { ...next.resources, [resource]: value };
     }
     const changes = { health: effect.health ?? effect.changeHealth, sanity: effect.sanity, hunger: effect.hunger, fatigue: effect.fatigue };
     const labels = { health: '生命', sanity: '理智', hunger: '饥饿', fatigue: '疲劳' };

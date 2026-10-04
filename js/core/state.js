@@ -28,6 +28,7 @@ export function stateErrors(state, stories) {
     }
     if (!Array.isArray(state.inventory) || !state.inventory.every(item => typeof item === 'string' && item.trim())) errors.push('物品列表无效');
     if (state.history !== undefined && !Array.isArray(state.history)) errors.push('历史记录无效');
+    else if (state.history?.some(entry => !entry || typeof entry !== 'object' || !['text', 'nodeText', 'from', 'to'].every(key => typeof entry[key] === 'string') || !Number.isFinite(entry.timestamp))) errors.push('历史条目无效');
     for (const key of ['flags', 'resources']) {
         const value = state[key];
         if (value === undefined) continue;

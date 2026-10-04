@@ -95,3 +95,15 @@ test('existing refugee changeHealth choices retain their original behavior', () 
     assert.equal(result.state.health, 90);
     assert.equal(result.state.currentNode, 'warehouse1');
 });
+
+test('prototype names never masquerade as owned resources or flags', () => {
+    const state = createState('sample');
+    assert.equal(checkCondition({ resources: { constructor: 1 } }, state).allowed, false);
+    assert.equal(checkCondition({ hasFlag: 'toString' }, state).allowed, false);
+    const effect = JSON.parse('{"resources":{"__proto__":1}}');
+    const result = transition(state, action, stories(effect));
+    assert.equal(result.ok, true);
+    assert.equal(Object.hasOwn(result.state.resources, '__proto__'), true);
+    assert.equal(result.state.resources.__proto__, 1);
+    assert.equal(Object.getPrototypeOf(result.state.resources), Object.prototype);
+});

@@ -1,6 +1,6 @@
 import { identities, storyData } from './data.js';
 import { ParticleSystem, AudioManager } from './effects.js';
-import { readJSON, writeJSON, readVolume, decodeLegacySave } from './core/save-store.js';
+import { writeJSON, readVolume, saveSlot, loadSlot } from './core/save-store.js';
 import { createState, transition } from './core/engine.js';
 import { checkCondition } from './core/conditions.js';
 
@@ -220,13 +220,15 @@ class Game {
         }
     }
 
-    saveGame() {
-        const saveData = {
-            state: this.state,
-            timestamp: new Date().getTime()
-        };
-        const result = writeJSON('nw_save', saveData);
+    saveGame(slot = 'manual-1') {
+        const result = saveSlot(slot, this.state, storyData);
         alert(result.ok ? '游戏已保存' : '无法写入存档，请检查浏览器存储设置；当前游戏可继续');
+    }
+
+    autoSave() {
+        const result = saveSlot('auto', this.state, storyData);
+        if (!result.ok && !this.storageWarningShown) this.showNotification('自动存档无法保存，当前游戏仍可继续');
+        this.storageWarningShown = !result.ok;
     }
 
     saveVolume() {
@@ -234,22 +236,18 @@ class Game {
         if (!result.ok) this.showNotification('音量设置无法保存，本次设置仍然生效');
     }
 
-    loadGame() {
-        const record = readJSON('nw_save');
-        if (!record.ok) {
-            alert('存档无法读取，原记录已保留；你可以开始新游戏');
-            return;
-        }
-        if (record.value === null) {
-            alert('没有找到存档');
-            return;
-        }
-        const decoded = decodeLegacySave(record.value, storyData);
+    loadGame(slot = 'manual-1') {
+        const decoded = loadSlot(slot, storyData);
         if (!decoded.ok) {
-            alert('存档内容无效，原记录已保留；你可以开始新游戏');
+            const message = decoded.reason === 'missing' ? '没有找到存档'
+                : ['invalid-json', 'storage-unavailable'].includes(decoded.reason) ? '存档无法读取，原记录已保留；你可以开始新游戏'
+                : ['unsupported-version', 'unsupported-content'].includes(decoded.reason) ? '存档版本不兼容，原记录已保留'
+                : '存档内容无效，原记录已保留；你可以开始新游戏';
+            alert(message);
             return;
         }
         this.state = decoded.state;
+        if (decoded.warning) this.showNotification('旧存档已读取，转换结果暂无法保存；原记录已保留');
         
         this.showScreen('game');
         this.updateStatus();
@@ -301,6 +299,7 @@ class Game {
         this.updateStatus();
         this.showScreen('game');
         this.playNode('start');
+        this.autoSave();
     }
 
     playNode(nodeKey) {
@@ -392,6 +391,7 @@ class Game {
         this.transitioning = true;
         this.playClickSFX();
         this.state = result.state;
+        this.autoSave();
         this.updateStatus();
         for (const event of result.events) this.showNotification(event.message);
         this.playNode(this.state.currentNode);
