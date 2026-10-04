@@ -1,7 +1,7 @@
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const nonempty = value => typeof value === 'string' && value.trim().length > 0;
-const numericEffects = new Set(['health', 'changeHealth', 'sanity']);
-const itemEffects = new Set(['addItem', 'removeItem']);
+import { conditionErrors } from './conditions.js';
+import { effectErrors } from './choice-effects.js';
 
 /** Validate data without mutating it or interpreting story text as code. */
 export function validateStories(stories, identities, { initialItems = {} } = {}) {
@@ -56,31 +56,11 @@ export function validateStories(stories, identities, { initialItems = {} } = {})
                     issue(errors, 'target', choicePath, `跳转目标不存在：${String(choice.next)}`);
                 }
                 if (choice.condition !== undefined) {
-                    if (!object(choice.condition)) {
-                        issue(errors, 'condition', choicePath, 'condition 必须是对象');
-                    } else {
-                        for (const [name, value] of Object.entries(choice.condition)) {
-                            if (name !== 'hasItem' || !nonempty(value)) {
-                                issue(errors, 'condition', choicePath, `无效或不支持的条件：${name}`);
-                            } else if (!sources.has(value)) {
-                                issue(warnings, 'item-source', choicePath, `当前身份缺少物品获取来源：${value}`);
-                            }
-                        }
-                    }
+                    for (const message of conditionErrors(choice.condition)) issue(errors, 'condition', choicePath, message);
+                    if (nonempty(choice.condition?.hasItem) && !sources.has(choice.condition.hasItem)) issue(warnings, 'item-source', choicePath, `当前身份缺少物品获取来源：${choice.condition.hasItem}`);
                 }
                 if (choice.effect !== undefined) {
-                    if (!object(choice.effect)) {
-                        issue(errors, 'effect', choicePath, 'effect 必须是对象');
-                    } else {
-                        for (const [name, value] of Object.entries(choice.effect)) {
-                            if (numericEffects.has(name) ? typeof value !== 'number' || !Number.isFinite(value) : itemEffects.has(name) ? !nonempty(value) : true) {
-                                issue(errors, 'effect', choicePath, `无效或不支持的效果：${name}`);
-                            }
-                        }
-                        if (Object.hasOwn(choice.effect, 'health') && Object.hasOwn(choice.effect, 'changeHealth')) {
-                            issue(errors, 'effect', choicePath, 'health 与 changeHealth 不能同时存在');
-                        }
-                    }
+                    for (const message of effectErrors(choice.effect)) issue(errors, 'effect', choicePath, message);
                 }
             });
         }

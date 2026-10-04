@@ -1,17 +1,13 @@
 import { identities, storyData } from './data.js';
 import { ParticleSystem, AudioManager } from './effects.js';
 import { readJSON, writeJSON, readVolume, decodeLegacySave } from './core/save-store.js';
+import { createState, transition } from './core/engine.js';
+import { checkCondition } from './core/conditions.js';
 
 class Game {
     constructor() {
-        this.state = {
-            currentIdentity: null,
-            currentNode: null,
-            inventory: [],
-            health: 100,
-            sanity: 100,
-            history: []
-        };
+        this.state = createState();
+        this.transitioning = false;
         
         this.elements = {
             titleScreen: document.getElementById('title-screen'),
@@ -301,10 +297,7 @@ class Game {
     }
 
     startGame() {
-        this.state.inventory = [];
-        this.state.health = 100;
-        this.state.sanity = 100;
-        this.state.history = [];
+        this.state = createState(this.state.currentIdentity);
         this.updateStatus();
         this.showScreen('game');
         this.playNode('start');
@@ -326,6 +319,7 @@ class Game {
         
         // 打字机效果显示文本
         this.typewriter(node.text, () => {
+            this.transitioning = false;
             this.renderChoices(node.choices);
         });
     }
@@ -337,6 +331,7 @@ class Game {
         
          // 打字机效果显示文本
          this.typewriter(node.text, () => {
+             this.transitioning = false;
              this.renderChoices(node.choices);
          });
     }
@@ -375,79 +370,31 @@ class Game {
             return;
         }
 
-        choices.forEach(choice => {
-            // 检查条件
-            if (choice.condition) {
-                if (choice.condition.hasItem && !this.state.inventory.includes(choice.condition.hasItem)) {
-                    return; // 不满足条件，不显示
-                }
-                // 可以添加更多条件检查，如 health > 50 等
-            }
+        const nodeKey = this.state.currentNode;
+        choices.forEach((choice, choiceIndex) => {
+            if (!checkCondition(choice.condition, this.state).allowed) return;
 
             const btn = document.createElement('button');
             btn.textContent = choice.text;
             btn.classList.add('choice-btn', 'fade-in');
-            btn.addEventListener('click', () => this.handleChoice(choice));
+            btn.addEventListener('click', () => this.handleChoice({ nodeKey, choiceIndex }));
             this.elements.choicesArea.appendChild(btn);
         });
     }
 
-    handleChoice(choice) {
-        this.playClickSFX(); // Add sound to choices
-        if (choice.effect) {
-            if (choice.effect.addItem) {
-                this.addItem(choice.effect.addItem);
-            }
-            if (choice.effect.removeItem) {
-                this.removeItem(choice.effect.removeItem);
-            }
-            if (choice.effect.changeHealth) {
-                this.changeHealth(choice.effect.changeHealth);
-            }
-            if (choice.effect.health) {
-                this.changeHealth(choice.effect.health);
-            }
-            if (choice.effect.sanity) {
-                this.changeSanity(choice.effect.sanity);
-            }
+    handleChoice(selection) {
+        if (this.transitioning) return;
+        const result = transition(this.state, selection, storyData);
+        if (!result.ok) {
+            this.showNotification(result.reason);
+            return;
         }
-
-        this.playNode(choice.next);
-    }
-
-    addItem(item) {
-        if (!this.state.inventory.includes(item)) {
-            this.state.inventory.push(item);
-            this.updateStatus();
-            this.showNotification(`获得物品：${item}`);
-        }
-    }
-
-    removeItem(item) {
-        const index = this.state.inventory.indexOf(item);
-        if (index > -1) {
-            this.state.inventory.splice(index, 1);
-            this.updateStatus();
-            this.showNotification(`失去物品：${item}`);
-        }
-    }
-
-    changeHealth(amount) {
-        this.state.health += amount;
-        if (this.state.health > 100) this.state.health = 100;
-        if (this.state.health < 0) this.state.health = 0;
+        this.transitioning = true;
+        this.playClickSFX();
+        this.state = result.state;
         this.updateStatus();
-        if (amount < 0) this.showNotification(`生命值减少 ${Math.abs(amount)}`);
-        else this.showNotification(`生命值增加 ${amount}`);
-    }
-
-    changeSanity(amount) {
-        this.state.sanity += amount;
-        if (this.state.sanity > 100) this.state.sanity = 100;
-        if (this.state.sanity < 0) this.state.sanity = 0;
-        this.updateStatus();
-        if (amount < 0) this.showNotification(`理智减少 ${Math.abs(amount)}`);
-        else this.showNotification(`理智增加 ${amount}`);
+        for (const event of result.events) this.showNotification(event.message);
+        this.playNode(this.state.currentNode);
     }
 
     updateStatus() {

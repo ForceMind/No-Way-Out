@@ -38,7 +38,7 @@ test('missing starts, invalid nodes and duplicate identities are reported', () =
 test('nonfinite effects, ambiguous health changes and unknown rules cannot silently pass', () => {
     const data = story();
     data.sample.start.choices[0].effect = { health: Infinity, changeHealth: -5, unsupported: 1 };
-    data.sample.start.choices[0].condition = { minHealth: 10 };
+    data.sample.start.choices[0].condition = { unknownRule: 10 };
     const result = validateStories(data, identities);
     assert.equal(result.errors.filter(e => e.code === 'effect').length, 3);
     assert.equal(result.errors.filter(e => e.code === 'condition').length, 1);

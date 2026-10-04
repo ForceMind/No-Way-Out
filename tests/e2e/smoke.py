@@ -76,12 +76,20 @@ def run_smoke(repository, base, browser_path):
                 farmer.locator("#identity-list").get_by_role("button", name="农夫", exact=True).click()
                 farmer.locator("#confirm-identity").click()
                 farmer.wait_for_function("!document.querySelector('#dialogue-text').classList.contains('cursor')")
-                farmer.locator("#choices-area").get_by_role("button", name=choice_text, exact=True).click()
+                opening = farmer.locator("#choices-area").get_by_role("button", name=choice_text, exact=True)
+                if item:
+                    opening.evaluate("button => { button.click(); button.click(); }")
+                else:
+                    opening.click()
                 expect(farmer.locator("#dialogue-text")).to_have_text(data["stories"]["farmer"][target]["text"])
                 farmer.wait_for_function("!document.querySelector('#dialogue-text').classList.contains('cursor')")
                 expect(farmer.locator("#inventory-display .item-tag")).to_have_count(1 if item else 0)
                 if item:
                     expect(farmer.locator("#inventory-display")).to_have_text(item)
+                farmer.locator("#save-btn").click()
+                farmer_save = farmer.evaluate("JSON.parse(localStorage.getItem('nw_save'))")
+                assert len(farmer_save["state"]["history"]) == 1
+                assert farmer_save["state"]["history"][0]["to"] == target
                 farmer.close()
             print("PASS: all three farmer opening choices reach valid nodes with correct inventory", flush=True)
 
@@ -125,6 +133,8 @@ def run_smoke(repository, base, browser_path):
             assert saved["state"]["health"] == 90
             assert saved["state"]["sanity"] == 100
             assert saved["state"]["inventory"] == ["干粮"]
+            assert len(saved["state"]["history"]) == 9
+            assert saved["state"]["history"][-1]["text"] == "忍痛无视"
             page.locator("#settings-btn-game").click()
             expect(page.locator("#settings-modal")).to_be_visible()
             page.locator("#bgm-volume").fill("0.2")
