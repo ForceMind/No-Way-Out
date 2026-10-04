@@ -15,7 +15,9 @@ export const agentData = {
     agent_follow: { text: "你跟着士兵来到西门岗哨。", choices: [ {text:"潜入岗哨", next:"agent_infiltrate"}, {text:"返回", next:"agent_hideout"} ] },
     agent_infiltrate: { text: "你潜入岗哨发现了敌军调动计划。", choices: [ {text:"带走计划", next:"ending_agent_win", effect: {addItem: "调动计划"}}, {text:"销毁计划", next:"ending_agent_fail"} ] },
 
-    agent_hideout: { text: "秘密据点里有几位同志在整理情报。书记告诉你，组织需要你在城内潜伏五天，配合即将到来的反攻。", choices: [ {text:"接受任务", next:"agent_day1_start"}, {text:"表示太危险", next:"agent_church"} ] },
+    agent_hideout: { text: "秘密据点里有几位同志在整理情报。书记告诉你，组织需要你在城内潜伏五天，配合即将到来的反攻。", choices: [ {text:"接受任务", next:"agent_prepare"}, {text:"表示太危险", next:"agent_church"} ] },
+
+    agent_prepare: { text:"据点里仅剩一把步枪和一把供紧急救护使用的手术刀。携带步枪便于远处掩护，手术刀更容易藏在衣服里。你只能带走一件。", choices:[{id:"agent_take_rifle", text:"带上步枪", next:"agent_day1_start", effect:{addItem:"步枪"}}, {id:"agent_take_scalpel", text:"带上手术刀", next:"agent_day1_start", effect:{addItem:"手术刀"}}] },
 
     // 地下党员-潜伏任务分支 (Day 1-5)
     agent_day1_start: { text: "第一天。你需要一个伪装身份。", choices: [ {text:"伪装成车夫", next:"agent_day1_rickshaw"}, {text:"伪装成乞丐", next:"agent_day1_beggar"} ] },
@@ -36,7 +38,7 @@ export const agentData = {
     agent_day2_night: { text: "今晚全城戒严。", choices: [ {text:"睡觉", next:"agent_day3_morning"} ] },
 
     agent_day3_morning: { text: "第三天。组织发现了一名叛徒。", choices: [ {text:"执行锄奸任务", next:"agent_day3_kill"}, {text:"负责转移据点", next:"agent_day3_move"} ] },
-    agent_day3_kill: { text: "你跟踪叛徒到了茶馆。", choices: [ {text:"下毒", next:"agent_day3_poison"}, {text:"暗巷刺杀", next:"agent_day3_stab", condition: {hasItem: "手术刀"}} ] }, // 手术刀可能来自医生线，这里假设通用物品或之前获得
+    agent_day3_kill: { text: "你跟踪叛徒到了茶馆。", choices: [ {text:"下毒", next:"agent_day3_poison"}, {text:"暗巷刺杀", next:"agent_day3_stab", condition: {hasItem: "手术刀"}} ] },
     agent_day3_poison: { text: "你在他的茶里下了毒。", choices: [ {text:"确认死亡后离开", next:"agent_day3_done"} ] },
     agent_day3_stab: { text: "你干净利落地解决了叛徒。", choices: [ {text:"离开", next:"agent_day3_done"} ] },
     agent_day3_move: { text: "你协助同志们搬运文件。", choices: [ {text:"销毁带不走的", next:"agent_day3_done"} ] },

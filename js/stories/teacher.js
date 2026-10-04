@@ -6,7 +6,7 @@ export const teacherData = {
     teacher_rescue: { text: "你找到两名学生，他们哭着请求你带他们离开。", choices: [ {text:"带上学生", next:"teacher_with_students"}, {text:"拒绝", next:"teacher_collect"} ] },
     teacher_with_students: { text: "你带着两名学生，准备寻找安全的路线。", choices: [ {text:"去教堂", next:"teacher_church_start"}, {text:"去河边", next:"teacher_river"} ] },
 
-    teacher_collect: { text: "你在办公室找到一些粉笔和几本书。书中夹着一张城门守卫的排班表。", choices: [ {text:"利用排班表找路线", next:"teacher_gate_plan", effect: {addItem: "排班表"}}, {text:"前往教堂", next:"teacher_church_start"}, {text:"留在学校建立避难所", next:"teacher_school_start"} ] },
+    teacher_collect: { text: "你在办公室找到一些粉笔和几本书。书中夹着一张城门守卫的排班表，抽屉里还有你留下的零钱。", choices: [ {text:"利用排班表找路线", next:"teacher_gate_plan", effect: {addItem: "排班表"}}, {text:"前往教堂", next:"teacher_church_start"}, {text:"留在学校建立避难所", next:"teacher_school_start"}, {id:"teacher_take_coins", text:"带上自己的零钱去西门", next:"teacher_west", effect:{addItem:"钱币"}} ] },
     teacher_gate_plan: { text: "排班表显示西门夜间守卫较少。", choices: [ {text:"准备去西门", next:"teacher_west"}, {text:"改去教堂", next:"teacher_church_start"} ] },
 
     // 教师-学校避难所分支 (Day 1-5)

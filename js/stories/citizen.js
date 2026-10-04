@@ -5,7 +5,7 @@ export const citizenData = {
     relative1: { text: "你来到亲戚家，但发现家里没人，物资也所剩无几。", choices: [ {text:"翻找食物", next:"relative_food"}, {text:"上街寻找", next:"street1"}, {text:"继续等待", next:"relative_wait"} ] },
     relative_food: { text: "你找到一些干粮和一壶水。要不要再搜搜？", choices: [ {text:"继续搜寻", next:"relative_more"}, {text:"拿走现有食物", next:"relative_leave", effect: {addItem: "干粮", health: 10}} ] },
     relative_more: { text: "你翻开柜子，发现一张藏有暗门的地板。", choices: [ {text:"打开暗门", next:"relative_secret"}, {text:"不碰它", next:"relative_leave"} ] },
-    relative_secret: { text: "暗门下面有些旧钱币和一把生锈的小刀。要拿走吗？", choices: [ {text:"拿走", next:"relative_leave", effect: {addItem: "小刀"}}, {text:"不拿", next:"relative_leave"} ] },
+    relative_secret: { text: "暗门下面有些旧钱币和一把生锈的小刀。要拿走吗？", choices: [ {text:"拿走", next:"relative_leave", effect: {addItem: "小刀"}}, {text:"不拿", next:"relative_leave"}, {id:"citizen_take_coins", text:"带上旧钱币", next:"relative_leave", effect:{addItem:"钱币"}} ] },
     relative_leave: { text: "你背上物资，天色渐暗。", choices: [ {text:"在亲戚家休息一晚", next:"relative_rest", effect: {health: 20}}, {text:"直接离开", next:"street1"}, {text:"寻找长期避难所", next:"survival_start"} ] },
     relative_rest: { text: "你睡得很不安稳，半夜听到敲门声。", choices: [ {text:"开门看看", next:"relative_open"}, {text:"继续装睡", next:"relative_hide"} ] },
     relative_open: { text: "门外是一名陌生难民，他请求留宿。", choices: [ {text:"允许他进来", next:"relative_guest"}, {text:"拒绝", next:"relative_hide"} ] },

@@ -4,7 +4,7 @@ export const refugeeData = {
 
     ally1: { text: "你们结伴而行，他告诉你南边有个安全的仓库。", choices: [ {text:"去仓库", next:"warehouse1"}, {text:"先去找水", next:"water1"}, {text:"找食物", next:"food_search1"} ] },
     food_search1: { text: "你们在街边翻找破损的商店。", choices: [ {text:"进入杂货店", next:"shop1"}, {text:"去面包房", next:"bakery1"} ] },
-    shop1: { text: "杂货店里有一些罐头和米袋。", choices: [ {text:"拿走罐头", next:"warehouse1", effect: {addItem: "罐头"}}, {text:"拿米袋", next:"warehouse1", effect: {addItem: "米袋"}}, {text:"全拿", next:"warehouse_suspect", effect: {addItem: "大量物资"}} ] },
+    shop1: { text: "杂货店里有一些罐头和米袋，柜台的抽屉里散落着零钱。", choices: [ {text:"拿走罐头", next:"warehouse1", effect: {addItem: "罐头"}}, {text:"拿米袋", next:"warehouse1", effect: {addItem: "米袋"}}, {text:"全拿", next:"warehouse_suspect", effect: {addItem: "大量物资"}}, {id:"refugee_take_coins", text:"拿走柜台里的零钱", next:"warehouse1", effect:{addItem:"钱币"}} ] },
     bakery1: { text: "面包房里剩下几块发霉的面包。", choices: [ {text:"清理霉斑后吃", next:"warehouse1", effect: {changeHealth: -10}}, {text:"扔掉", next:"warehouse1"} ] },
     warehouse_suspect: { text: "你们搬着大量物资离开，引起了旁人注意。", choices: [ {text:"分一些给别人", next:"warehouse1", effect: {removeItem: "大量物资"}}, {text:"快速离开", next:"warehouse1"} ] },
 
