@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>无归之城 - 剧情编辑器</title>
+    <link rel="icon" href="icon.png" type="image/png">
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; height: 100vh; margin: 0; background: #f0f0f0; }
         #sidebar { width: 250px; background: #333; color: white; overflow-y: auto; display: flex; flex-direction: column; }
@@ -51,6 +52,7 @@
     </div>
 
     <div id="editor-area">
+        <div id="editor-error" role="alert" aria-live="polite" style="display:none; color:#a00; background:#fff0f0; padding:12px; margin-bottom:15px;"></div>
         <div id="no-selection" style="text-align:center; margin-top:50px; color:#888;">
             请在左侧选择一个身份和节点开始编辑
         </div>
@@ -79,6 +81,8 @@
 
 <script type="module">
     import { identities, storyData } from './js/data.js';
+    import { buildNodeDraft, DraftError } from './js/editor/model.js';
+    import { validateStories } from './js/core/story-validator.js';
 
     // Deep copy to avoid direct mutation issues until save
     let currentData = JSON.parse(JSON.stringify(storyData));
@@ -90,6 +94,25 @@
     const editForm = document.getElementById('edit-form');
     const noSelection = document.getElementById('no-selection');
     const choicesEditor = document.getElementById('choices-editor');
+    const choiceMetadata = new WeakMap();
+
+    function clearError() {
+        document.getElementById('editor-error').style.display = 'none';
+        document.querySelectorAll('[aria-invalid]').forEach(input => input.removeAttribute('aria-invalid'));
+    }
+
+    function showError(error) {
+        const element = document.getElementById('editor-error');
+        element.textContent = error.message;
+        element.style.display = 'block';
+        const input = error.index === null || error.index === undefined
+            ? document.getElementById(error.field)
+            : choicesEditor.children[error.index]?.querySelector(`.${error.field}`);
+        if (input) {
+            input.setAttribute('aria-invalid', 'true');
+            input.focus();
+        }
+    }
 
     function init() {
         renderIdentities();
@@ -109,6 +132,8 @@
 
     function selectIdentity(id) {
         currentIdentity = id;
+        currentNodeKey = null;
+        clearError();
         renderIdentities();
         renderNodes();
         editForm.style.display = 'none';
@@ -128,6 +153,7 @@
     }
 
     function selectNode(key) {
+        clearError();
         currentNodeKey = key;
         renderNodes();
         
@@ -143,86 +169,73 @@
 
     function renderChoices(choices) {
         choicesEditor.innerHTML = '';
-        choices.forEach((choice, index) => {
-            const div = document.createElement('div');
-            div.className = 'choice-item';
-            div.innerHTML = `
-                <div style="margin-bottom:5px;">
-                    <label>选项文本:</label>
-                    <input type="text" class="choice-text" value="${choice.text}">
-                </div>
-                <div style="margin-bottom:5px;">
-                    <label>跳转节点 (Next):</label>
-                    <input type="text" class="choice-next" value="${choice.next || ''}">
-                </div>
-                <div style="margin-bottom:5px;">
-                    <label>效果 (Effect - JSON):</label>
-                    <input type="text" class="choice-effect" value='${JSON.stringify(choice.effect || {})}' placeholder='{"addItem":"key"}'>
-                </div>
-                <button class="btn btn-danger" onclick="window.removeChoice(${index})">删除</button>
-            `;
-            choicesEditor.appendChild(div);
-        });
+        choices.forEach(appendChoice);
     }
 
-    window.addChoice = () => {
+    function appendChoice(choice) {
         const div = document.createElement('div');
         div.className = 'choice-item';
-        div.innerHTML = `
-            <div style="margin-bottom:5px;">
-                <label>选项文本:</label>
-                <input type="text" class="choice-text" value="新选项">
-            </div>
-            <div style="margin-bottom:5px;">
-                <label>跳转节点 (Next):</label>
-                <input type="text" class="choice-next" value="">
-            </div>
-            <div style="margin-bottom:5px;">
-                <label>效果 (Effect - JSON):</label>
-                <input type="text" class="choice-effect" value="{}" placeholder='{"addItem":"key"}'>
-            </div>
-            <button class="btn btn-danger" onclick="this.parentElement.remove()">删除</button>
-        `;
+        choiceMetadata.set(div, structuredClone(choice));
+        for (const [labelText, className, value] of [
+            ['选项文本:', 'choice-text', choice.text ?? ''],
+            ['跳转节点 (Next):', 'choice-next', choice.next ?? ''],
+            ['效果 (Effect - JSON):', 'choice-effect', JSON.stringify(choice.effect ?? {})]
+        ]) {
+            const group = document.createElement('div');
+            group.style.marginBottom = '5px';
+            const label = document.createElement('label');
+            label.textContent = labelText;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = className;
+            input.value = value;
+            label.appendChild(input);
+            group.appendChild(label);
+            div.appendChild(group);
+        }
+        const remove = document.createElement('button');
+        remove.className = 'btn btn-danger';
+        remove.textContent = '删除';
+        remove.addEventListener('click', () => div.remove());
+        div.appendChild(remove);
         choicesEditor.appendChild(div);
-    };
+    }
 
-    window.removeChoice = (index) => {
-        // Re-render is easier but for now just DOM removal is handled by inline onclick for new ones.
-        // For existing ones, we need to be careful. 
-        // Actually, let's just save the state before re-rendering or just use DOM traversal on save.
-        selectNode(currentNodeKey); // Reset to saved state
-        // Wait, this is tricky. Let's just use DOM traversal for saving.
-    };
+    window.addChoice = () => appendChoice({ text: '新选项', next: '', effect: {} });
+    window.removeChoice = index => choicesEditor.children[index]?.remove();
 
     window.saveCurrentNode = () => {
         if (!currentNodeKey) return;
         
-        const text = document.getElementById('node-text').value;
-        const choiceItems = choicesEditor.querySelectorAll('.choice-item');
-        const choices = [];
-        
-        choiceItems.forEach(item => {
-            const txt = item.querySelector('.choice-text').value;
-            const nxt = item.querySelector('.choice-next').value;
-            let eff = {};
-            try {
-                eff = JSON.parse(item.querySelector('.choice-effect').value || '{}');
-            } catch(e) { console.error("Invalid JSON in effect"); }
-            
-            choices.push({ text: txt, next: nxt, effect: eff });
-        });
-
-        currentData[currentIdentity][currentNodeKey] = {
-            text: text,
-            choices: choices
-        };
-        
-        alert('节点已保存至内存！记得点击导出。');
+        clearError();
+        try {
+            const inputs = Array.from(choicesEditor.children, item => ({
+                original: choiceMetadata.get(item),
+                text: item.querySelector('.choice-text').value,
+                next: item.querySelector('.choice-next').value,
+                effectText: item.querySelector('.choice-effect').value
+            }));
+            const draft = buildNodeDraft(currentData[currentIdentity][currentNodeKey], document.getElementById('node-text').value, inputs);
+            const nodes = { ...currentData[currentIdentity], [currentNodeKey]: draft };
+            const result = validateStories({ [currentIdentity]: nodes }, [{ id: currentIdentity }]);
+            if (result.errors.length) {
+                const issue = result.errors[0];
+                const index = issue.path.match(/choices\[(\d+)\]/)?.[1];
+                throw new DraftError(issue.message, issue.code === 'target' ? 'choice-next' : 'choice-effect', index === undefined ? null : Number(index));
+            }
+            currentData[currentIdentity][currentNodeKey] = draft;
+            alert('节点已保存至内存！记得点击导出。');
+        } catch (error) {
+            showError(error);
+        }
     };
 
     window.addNode = () => {
         const key = prompt("请输入新节点ID (例如: street_event_1):");
-        if (key && !currentData[currentIdentity][key]) {
+        if (key === null) return;
+        if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(key)) {
+            showError(new Error('节点 ID 需以字母开头，只包含字母、数字和下划线'));
+        } else if (!Object.hasOwn(currentData[currentIdentity], key)) {
             currentData[currentIdentity][key] = { text: "新剧情...", choices: [] };
             renderNodes();
             selectNode(key);
@@ -232,6 +245,16 @@
     };
 
     window.deleteCurrentNode = () => {
+        if (!currentNodeKey) return;
+        if (currentNodeKey === 'start') {
+            showError(new Error('不能删除身份的 start 节点'));
+            return;
+        }
+        const references = Object.entries(currentData[currentIdentity]).filter(([key, node]) => key !== currentNodeKey && node.choices.some(choice => choice.next === currentNodeKey)).map(([key]) => key);
+        if (references.length) {
+            showError(new Error(`不能删除：节点被 ${references.join('、')} 引用，请先修改跳转`));
+            return;
+        }
         if (confirm("确定删除此节点吗？")) {
             delete currentData[currentIdentity][currentNodeKey];
             currentNodeKey = null;

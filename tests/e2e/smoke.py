@@ -186,6 +186,51 @@ def run_smoke(repository, base, browser_path):
             assert exported["citizen"]["start"]["choices"][-1] == {"text": "验证选项", "next": "home", "effect": {"health": -1}}
             print("PASS: editor loads stories, saves in memory and exports valid edited JSON", flush=True)
 
+            editor.locator("#node-list").get_by_text("shelter_wait", exact=True).click()
+            quoted_text = '递水并说："慢点喝"，保留\'原文\''
+            node_text = data["stories"]["citizen"]["shelter_wait"]["text"] + "（未保存的文字）"
+            editor.locator("#node-text").fill(node_text)
+            editor.locator(".choice-item").first.locator(".choice-text").fill(quoted_text)
+            editor.locator(".choice-item").last.get_by_role("button", name="删除", exact=True).click()
+            expect(editor.locator(".choice-item")).to_have_count(1)
+            expect(editor.locator("#node-text")).to_have_value(node_text)
+            expect(editor.locator(".choice-text")).to_have_value(quoted_text)
+            editor.get_by_role("button", name="添加选项", exact=True).click()
+            new_choice = editor.locator(".choice-item").last
+            new_choice.locator(".choice-text").fill("离开")
+            new_choice.locator(".choice-next").fill("street1")
+            new_choice.locator(".choice-effect").fill('{"health": -1}')
+            editor.get_by_role("button", name="保存当前节点修改", exact=True).click()
+
+            def export_editor():
+                with editor.expect_download() as event:
+                    editor.get_by_role("button", name="导出 JSON (需手动拆分)", exact=True).click()
+                with tempfile.TemporaryDirectory(prefix="no-way-out-editor-") as output_dir:
+                    path = Path(output_dir) / "storyData.json"
+                    event.value.save_as(path)
+                    return json.loads(path.read_text())
+
+            valid_export = export_editor()
+            saved_node = valid_export["citizen"]["shelter_wait"]
+            assert saved_node["text"] == node_text
+            assert len(saved_node["choices"]) == 2
+            assert saved_node["choices"][0]["text"] == quoted_text
+            assert saved_node["choices"][0]["condition"] == {"hasItem": "水"}
+            assert saved_node["choices"][1]["effect"] == {"health": -1}
+            editor.locator(".choice-item").last.locator(".choice-effect").fill('{"health":')
+            editor.get_by_role("button", name="保存当前节点修改", exact=True).click()
+            expect(editor.locator("#editor-error")).to_be_visible()
+            expect(editor.locator("#editor-error")).to_contain_text("JSON 不合法")
+            assert export_editor() == valid_export
+            editor.locator(".choice-item").last.locator(".choice-effect").fill('{"health": -1}')
+            editor.get_by_role("button", name="保存当前节点修改", exact=True).click()
+            editor.locator("#node-list").get_by_text("shelter", exact=True).click()
+            editor.get_by_role("button", name="删除节点", exact=True).click()
+            expect(editor.locator("#editor-error")).to_contain_text("不能删除")
+            expect(editor.locator("#editor-error")).to_contain_text("start、relative_escape")
+            assert export_editor() == valid_export
+            print("PASS: editor deletion preserves drafts/conditions/quotes and invalid saves or referenced deletions leave data unchanged", flush=True)
+
             assert not page_errors, page_errors
             font_hosts = ("fonts.googleapis.com", "fonts.gstatic.com")
 
