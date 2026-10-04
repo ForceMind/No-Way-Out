@@ -190,7 +190,7 @@ def run_smoke(repository, base, browser_path):
             expect(editor.locator("#node-text")).to_have_value(changed_text)
             expect(editor.locator(".choice-item")).to_have_count(5)
             with editor.expect_download() as download_event:
-                editor.get_by_role("button", name="导出 JSON (需手动拆分)", exact=True).click()
+                editor.get_by_role("button", name="导出 JSON (完整备份)", exact=True).click()
             with tempfile.TemporaryDirectory(prefix="no-way-out-smoke-") as output_dir:
                 export_path = Path(output_dir) / "storyData.json"
                 download_event.value.save_as(export_path)
@@ -218,7 +218,7 @@ def run_smoke(repository, base, browser_path):
 
             def export_editor():
                 with editor.expect_download() as event:
-                    editor.get_by_role("button", name="导出 JSON (需手动拆分)", exact=True).click()
+                    editor.get_by_role("button", name="导出 JSON (完整备份)", exact=True).click()
                 with tempfile.TemporaryDirectory(prefix="no-way-out-editor-") as output_dir:
                     path = Path(output_dir) / "storyData.json"
                     event.value.save_as(path)
@@ -267,6 +267,62 @@ def run_smoke(repository, base, browser_path):
                     expect(broken.locator("#sfx-volume")).to_have_value("0.5")
                 assert broken.evaluate("key => localStorage.getItem(key)", key) == raw
                 isolated.close()
+
+            editor.locator("#node-list").get_by_text("shelter_wait", exact=True).click()
+            editor.locator("#node-text").fill("切换时待处理的文字")
+            editor.locator("#node-list").get_by_text("home", exact=True).click()
+            expect(editor.locator("#unsaved-modal")).to_be_visible()
+            editor.locator("#draft-cancel").click()
+            expect(editor.locator("#node-text")).to_have_value("切换时待处理的文字")
+            editor.locator("#node-list").get_by_text("home", exact=True).click()
+            editor.locator("#draft-discard").click()
+            expect(editor.locator("#node-key")).to_have_value("home")
+            editor.locator("#node-list").get_by_text("shelter_wait", exact=True).click()
+            editor.locator(".choice-condition").first.fill('{"hasItem":"水","minHealth":10}')
+            editor.locator("#node-list").get_by_text("home", exact=True).click()
+            editor.locator("#draft-save").click()
+            expect(editor.locator("#node-key")).to_have_value("home")
+            editor.locator("#undo-btn").click()
+            assert export_editor()["citizen"]["shelter_wait"]["choices"][0]["condition"] == {"hasItem":"水"}
+            editor.locator("#redo-btn").click()
+            expected_data=export_editor()
+            assert expected_data["citizen"]["shelter_wait"]["choices"][0]["condition"] == {"hasItem":"水","minHealth":10}
+            editor.locator("#node-search").fill("shelter_wait")
+            expect(editor.locator("#node-list .node-item")).to_have_count(1)
+            editor.locator("#node-list").get_by_text("shelter_wait", exact=True).click()
+            expect(editor.locator("#node-references")).to_contain_text("shelter")
+            editor.locator("#preview-btn").click()
+            expect(editor.locator("#preview-choices button").first).to_be_disabled()
+            editor.locator("#preview-items").fill("水")
+            editor.locator("#preview-restart").click()
+            expect(editor.locator("#preview-choices button").first).to_be_enabled()
+            editor.locator("#preview-choices button").first.click()
+            expect(editor.locator("#preview-status")).to_contain_text(expected_data["citizen"]["shelter_wait"]["choices"][0]["next"])
+            editor.locator("#preview-close").click()
+            with editor.expect_download() as event:
+                editor.locator("#export-identity").click()
+            with tempfile.TemporaryDirectory() as output_dir:
+                module_path=Path(output_dir)/"citizen.js"
+                event.value.save_as(module_path)
+                source=module_path.read_text()
+                imported=editor.evaluate("async source=>{const url=URL.createObjectURL(new Blob([source],{type:'text/javascript'}));try{return (await import(url)).citizenData;}finally{URL.revokeObjectURL(url);}}",source)
+                assert imported == expected_data["citizen"]
+            editor.locator("#import-file").set_input_files({"name":"backup.json","mimeType":"application/json","buffer":json.dumps(expected_data).encode()})
+            expect(editor.locator("#edit-form")).not_to_be_visible()
+            assert export_editor()==expected_data
+            editor.locator("#import-file").set_input_files({"name":"bad.json","mimeType":"application/json","buffer":b'{"citizen":{"start":{"text":"bad","choices":[{"text":"go","next":"missing"}]}}}'})
+            expect(editor.locator("#editor-error")).to_contain_text("missing")
+            assert export_editor()==expected_data
+            editor.locator("#node-search").fill("")
+            editor.locator("#node-list").get_by_text("shelter_wait", exact=True).click()
+            editor.locator("#node-text").fill("刷新后恢复的未提交文字")
+            editor.locator(".choice-effect").last.fill("{broken")
+            editor.wait_for_function("JSON.parse(localStorage.getItem('nw_editor_draft'))?.form?.inputs?.at(-1)?.effectText === '{broken'")
+            editor.reload(wait_until="networkidle")
+            expect(editor.locator("#node-text")).to_have_value("刷新后恢复的未提交文字")
+            expect(editor.locator(".choice-effect").last).to_have_value("{broken")
+            assert export_editor()==expected_data
+            print("PASS: editor switch save/discard/cancel, conditions, undo/redo, search/references, isolated preview, JS/JSON round-trip and raw draft recovery",flush=True)
 
             isolated = browser.new_context()
             legacy_page = isolated.new_page()
