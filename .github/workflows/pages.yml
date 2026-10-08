@@ -52,6 +52,15 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Use GitHub Actions as the Pages build source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          source_type=$(gh api "repos/${GITHUB_REPOSITORY}/pages" --jq '.build_type')
+          printf '::notice title=Pages build source::%s\n' "$source_type"
+          if [ "$source_type" != "workflow" ]; then
+            gh api --method PUT "repos/${GITHUB_REPOSITORY}/pages" -f build_type=workflow --silent
+          fi
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Deploy game

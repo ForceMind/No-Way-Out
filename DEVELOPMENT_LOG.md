@@ -177,3 +177,5 @@ Git 远端读取正常；GitHub API 与预期 Pages 地址被当前云网络代�
 远端首次尝试：GitHub 网页可读取实际运行 37749063290；build 成功，但 deploy 明确因开发分支不满足 github-pages 发布分支保护而拒绝。未修改保护规则。已拉取 main 并确认其是发布版本的祖先，改为仅由 main 触发发布，使用普通快进推送交付版本。新增远端 verify 作业，检查实际站点提交标记与全部静态文件哈希/MIME；此验证由 GitHub 运行器执行，避免将本机网络阻断误报为站点故障。
 
 main 首次 Pages 运行 37749570178 的 build/deploy 成功，站点发布 URL 为 https://forcemind.github.io/No-Way-Out/；verify 失败，尚不能宣称线上资源与发布包完全一致。公开作业页仅给出退出码，完整日志需要登录；追加精确失败资源与 HTTP 状态的公开注释，继续定位失败原因。
+
+增加 Pages Source 检查：部署作业仅使用 GitHub 内置 pages:write 身份将构建方式规范为 workflow，保留自定义域名和环境保护规则，避免旧分支构建与新发布互相覆盖。如果 GitHub 拒绝修改设置，则明确报告权限错误，不绕过保护。

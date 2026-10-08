@@ -18,7 +18,7 @@
 
 部署工作流 `.github/workflows/pages.yml` 使用 Node 24 校验故事并执行实际单元测试，检查结局目录未漂移，再运行仓库打包脚本。仅上传 `dist/no-way-out`，不上传源码仓库、Git 元数据、测试产物和 ZIP。deploy 作业拥有 `pages: write` 和 `id-token: write`；其他作业仅有源码只读权限。并发部署排队，避免中断已有部署。
 
-首次 Pages Source 配置需要仓库管理权限。工作流使用 GitHub 内置 GITHUB_TOKEN，不需要在仓库添加个人令牌。没有权限时需仓库管理员完成设置；不应移除已有环境审批要求。
+部署作业会使用内置 Pages 写入权限检查并将 Source 设为 GitHub Actions，避免旧分支构建与新发布互相覆盖；若仓库权限拒绝这项配置写入，再由管理员在 Settings → Pages 中设置。工作流使用 GitHub 内置 GITHUB_TOKEN，不需要在仓库添加个人令牌。没有权限时需仓库管理员完成设置；不应移除已有环境审批要求。
 
 ## 当前检查结果 · 2026-10-08
 
