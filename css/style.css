@@ -61,5 +61,4 @@ dialog input[type=range] { max-width:100%; vertical-align:middle; }
 #chapter-heading p { line-height:1.7; }
 #inventory summary { cursor:pointer; padding:6px 0; }
 
-#story-mode {display:block;max-width:100%;margin:10px auto 16px;border:1px solid #666;min-height:44px;}
 #survival-status {max-width:100%;line-height:1.7;overflow-wrap:anywhere;}

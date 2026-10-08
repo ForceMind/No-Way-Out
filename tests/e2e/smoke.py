@@ -16,6 +16,21 @@ from urllib.request import urlopen
 from playwright.sync_api import expect, sync_playwright
 
 
+def load_compatible_save(page, identity):
+    """Exercise prior save records without adding a second new-game path to the product."""
+    page.evaluate("""async identity=>{
+        const {createState}=await import('./js/core/engine.js');
+        const {createSave}=await import('./js/core/save-store.js');
+        const record=JSON.stringify(createSave(createState(identity)));
+        localStorage.setItem('nw_save_v2_manual-3',record);
+        localStorage.setItem('nw_save_v2_auto',record);
+    }""",identity)
+    page.reload(wait_until="networkidle")
+    page.locator('#saves-btn-title').click()
+    page.locator('[data-slot="manual-3"]').click()
+    page.evaluate("localStorage.removeItem('nw_save_v2_manual-3')")
+
+
 def run_smoke(repository, base, browser_path):
     files = ["index.html", "editor.html", "css/style.css", "icon.png", "assets/audio/BGM.mp3"]
     files += [str(path.relative_to(repository)) for path in sorted((repository / "js").rglob("*.js"))]
@@ -76,10 +91,10 @@ def run_smoke(repository, base, browser_path):
                 farmer = context.new_page()
                 observe(farmer)
                 farmer.goto(base, wait_until="networkidle")
-                farmer.locator("#story-mode").select_option("legacy")
                 farmer.locator("#start-btn").click()
                 farmer.locator("#identity-list").get_by_role("button", name="农夫", exact=True).click()
                 farmer.locator("#confirm-identity").click()
+                load_compatible_save(farmer, "farmer")
                 farmer.wait_for_function("!document.querySelector('#dialogue-text').classList.contains('cursor')")
                 opening = farmer.locator("#choices-area").get_by_role("button", name=choice_text, exact=True)
                 if item:
@@ -106,7 +121,6 @@ def run_smoke(repository, base, browser_path):
                 page.locator("#choices-area").get_by_role("button", name=text, exact=True).click()
                 wait_node(next_node)
 
-            page.locator("#story-mode").select_option("legacy")
             page.locator("#start-btn").click()
             expect(page.locator("#identity-screen")).to_be_visible()
             expect(page.locator(".identity-btn")).to_have_count(12)
@@ -115,6 +129,7 @@ def run_smoke(repository, base, browser_path):
             assert page.locator(".identity-btn:visible").count() == 12
             page.locator("#identity-list").get_by_role("button", name="普通市民", exact=True).click()
             page.locator("#confirm-identity").click()
+            load_compatible_save(page, "citizen")
             wait_node("start")
             expect(page.locator("#choices-area button")).to_have_count(len(data["stories"]["citizen"]["start"]["choices"]))
             choose("去亲戚家", "relative1")
@@ -165,10 +180,10 @@ def run_smoke(repository, base, browser_path):
             expect(page.locator("#title-screen")).to_be_visible()
             print("PASS: save/load across reload, persisted volume settings and ending/menu flow", flush=True)
 
-            page.locator("#story-mode").select_option("legacy")
             page.locator("#start-btn").click()
             page.locator("#identity-list").get_by_role("button", name="普通市民", exact=True).click()
             page.locator("#confirm-identity").click()
+            load_compatible_save(page, "citizen")
             wait_node("start")
             choose("去防空洞", "shelter")
             choose("继续待下去", "shelter_wait")
@@ -354,7 +369,6 @@ def run_smoke(repository, base, browser_path):
             observe(full)
             full.add_init_script("Storage.prototype.setItem = function() { throw new DOMException('Storage full', 'QuotaExceededError'); };")
             full.goto(base, wait_until="networkidle")
-            full.locator("#story-mode").select_option("legacy")
             full.locator("#start-btn").click()
             full.locator("#identity-list").get_by_role("button", name="普通市民", exact=True).click()
             full.locator("#confirm-identity").click()
@@ -377,15 +391,14 @@ def run_smoke(repository, base, browser_path):
                 reader.locator("#reduced-motion").check()
                 reader.keyboard.press("Escape")
                 expect(reader.locator("#settings-modal")).not_to_be_visible()
-                reader.locator("#story-mode").select_option("legacy")
                 reader.locator("#start-btn").click()
                 reader.locator("#identity-list").get_by_role("button", name="普通市民", exact=True).click()
                 reader.locator("#confirm-identity").click()
-                reader.locator("#choices-area").get_by_role("button",name="去亲戚家",exact=True).click()
-                expect(reader.locator("#choices-area button")).to_have_count(len(data["stories"]["citizen"]["relative1"]["choices"]))
+                reader.locator("#choices-area button").first.click()
+                expect(reader.locator("#choices-area button")).to_have_count(len(data["stories"]["citizen"]["campaign_citizen_0_0"]["choices"]))
                 reader.locator("#history-btn").click()
                 expect(reader.locator("#history-list section")).to_have_count(1)
-                expect(reader.locator("#history-list")).to_contain_text("你的选择：去亲戚家")
+                expect(reader.locator("#history-list")).to_contain_text(data["stories"]["citizen"]["campaign_citizen_start"]["choices"][0]["text"])
                 reader.keyboard.press("Tab")
                 assert reader.evaluate("document.activeElement.closest('dialog')?.id") == "history-modal"
                 reader.keyboard.press("Escape")
@@ -393,7 +406,7 @@ def run_smoke(repository, base, browser_path):
                 expect(reader.locator(".save-slot")).to_have_count(4)
                 reader.locator('[data-save-slot="manual-2"]').click()
                 slot = reader.evaluate("JSON.parse(localStorage.getItem('nw_save_v2_manual-2'))")
-                assert slot["state"]["currentNode"] == "relative1"
+                assert slot["state"]["currentNode"] == "campaign_citizen_0_0"
                 assert reader.evaluate("localStorage.getItem('nw_save_v2_manual-1')") is None
                 reader.keyboard.press("Escape")
                 assert reader.evaluate("document.documentElement.scrollWidth <= innerWidth"), width
@@ -405,7 +418,7 @@ def run_smoke(repository, base, browser_path):
                 reader.reload(wait_until="networkidle")
                 expect(reader.locator("#continue-btn")).to_be_visible()
                 reader.locator("#continue-btn").click()
-                expect(reader.locator("#dialogue-text")).to_have_text(data["stories"]["citizen"]["relative1"]["text"])
+                expect(reader.locator("#dialogue-text")).to_have_text(data["stories"]["citizen"]["campaign_citizen_0_0"]["text"])
                 assert reader.evaluate("JSON.parse(localStorage.getItem('nw_save_v2_auto')).state.history.length") == 1
                 expect(reader.locator("#reading-speed")).to_have_value("0")
                 expect(reader.locator("#reading-size")).to_have_value("24")
@@ -417,15 +430,14 @@ def run_smoke(repository, base, browser_path):
             skip_page = skip_context.new_page()
             observe(skip_page)
             skip_page.goto(base, wait_until="networkidle")
-            skip_page.locator("#story-mode").select_option("legacy")
             skip_page.locator("#start-btn").click()
             skip_page.locator("#identity-list").get_by_role("button",name="普通市民",exact=True).click()
             skip_page.locator("#confirm-identity").click()
             skip_page.locator("#skip-text").click()
-            expect(skip_page.locator("#choices-area button")).to_have_count(len(data["stories"]["citizen"]["start"]["choices"]))
-            skip_page.locator("#choices-area").get_by_role("button",name="去亲戚家",exact=True).click()
+            expect(skip_page.locator("#choices-area button")).to_have_count(len(data["stories"]["citizen"]["campaign_citizen_start"]["choices"]))
+            skip_page.locator("#choices-area button").first.click()
             skip_page.locator("#dialogue-text").click()
-            expect(skip_page.locator("#choices-area button")).to_have_count(len(data["stories"]["citizen"]["relative1"]["choices"]))
+            expect(skip_page.locator("#choices-area button")).to_have_count(len(data["stories"]["citizen"]["campaign_citizen_0_0"]["choices"]))
             skip_context.close()
             print("PASS: skipping text exposes each choice once", flush=True)
 
@@ -440,10 +452,10 @@ def run_smoke(repository, base, browser_path):
             ]
             for route,ending in routes:
                 survival_page.goto(base,wait_until="networkidle")
-                survival_page.locator("#story-mode").select_option("legacy")
                 survival_page.locator("#start-btn").click()
                 survival_page.locator("#identity-list").get_by_role("button",name="普通市民",exact=True).click()
                 survival_page.locator("#confirm-identity").click()
+                load_compatible_save(survival_page, "citizen")
                 for action_id in ["citizen_survival_chapter","city3_begin",*route]:
                     state=survival_page.evaluate("JSON.parse(localStorage.getItem('nw_save_v2_auto')).state")
                     choice=next(choice for choice in data["stories"]["citizen"][state["currentNode"]]["choices"] if choice.get("id")==action_id)
@@ -472,11 +484,11 @@ def run_smoke(repository, base, browser_path):
             classic_page.add_init_script("localStorage.setItem('nw_preferences',JSON.stringify({speed:0,fontSize:20,reducedMotion:true}));localStorage.setItem('nw_volume',JSON.stringify({bgm:0,sfx:0}));")
             for route in classic_routes:
                 classic_page.goto(base,wait_until="networkidle")
-                classic_page.locator("#story-mode").select_option("legacy")
                 classic_page.locator("#start-btn").click()
                 identity=next(item for item in data["identities"] if item["id"]==route["identity"])
                 classic_page.locator("#identity-list").get_by_role("button",name=identity["name"],exact=True).click()
                 classic_page.locator("#confirm-identity").click()
+                load_compatible_save(classic_page, route["identity"])
                 for step in route["steps"]:
                     classic_page.locator("#choices-area").get_by_role("button",name=step["text"],exact=True).click()
                     expect(classic_page.locator("#dialogue-text")).to_have_text(data["stories"][route["identity"]][step["next"]]["text"])
@@ -493,14 +505,13 @@ def run_smoke(repository, base, browser_path):
             future_auto=json.dumps({"saveVersion":999,"contentVersion":"future","state":{}})
             protected.add_init_script(f"localStorage.setItem('nw_save_v2_auto',{json.dumps(future_auto)}); localStorage.setItem('nw_preferences',JSON.stringify({{speed:0,fontSize:20,reducedMotion:true}}));")
             protected.goto(base,wait_until="networkidle")
-            protected.locator("#story-mode").select_option("legacy")
             protected.locator("#start-btn").click()
             protected.locator("#identity-list").get_by_role("button",name="普通市民",exact=True).click()
             protected.locator("#confirm-identity").click()
-            protected.locator("#choices-area").get_by_role("button",name="留在家中",exact=True).click()
+            protected.locator("#choices-area button").first.click()
             assert protected.evaluate("localStorage.getItem('nw_save_v2_auto')")==future_auto
             protected.locator("#save-btn").click()
-            assert protected.evaluate("JSON.parse(localStorage.getItem('nw_save_v2_manual-1')).state.currentNode")=="home"
+            assert protected.evaluate("JSON.parse(localStorage.getItem('nw_save_v2_manual-1')).state.currentNode")=="campaign_citizen_0_0"
             protected_context.close()
             print("PASS: incompatible automatic saves remain intact while new play can save manually",flush=True)
 

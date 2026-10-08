@@ -35,7 +35,7 @@ export function applyEffects(state, effect = {}) {
         if (value < 0) return { ok: false, reason: '资源不足，行动未执行' };
         next.resources = { ...next.resources, [resource]: value };
         const label={food:"食物",water:"饮水",kit:"物资",work:"落实",proof:"核验",care:"互助",chapterWork:"本章落实",chapterProof:"本章核验"}[resource]??resource;
-        if(amount) events.push({type:"resource",message:`${label}${amount>0?"增加":"减少"} ${Math.abs(amount)} 份`});
+        if(amount && !['work','proof','chapterWork','chapterProof'].includes(resource)) events.push({type:"resource",message:`${label}${amount>0?"增加":"减少"} ${Math.abs(amount)} 份`});
     }
     const changes = { health: effect.health ?? effect.changeHealth, sanity: effect.sanity, hunger: effect.hunger, fatigue: effect.fatigue };
     const labels = { health: '生命', sanity: '理智', hunger: '饥饿', fatigue: '疲劳' };

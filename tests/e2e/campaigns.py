@@ -2,6 +2,7 @@
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import json
+import re
 import os
 from pathlib import Path
 import shutil
@@ -35,7 +36,8 @@ with ThreadingHTTPServer(('127.0.0.1',0),partial(Handler,directory=str(root))) a
             try:
                 for route in routes:
                     page.goto(base,wait_until='networkidle')
-                    expect(page.locator('#story-mode')).to_have_value('campaign')
+                    expect(page.locator('#story-mode')).to_have_count(0)
+                    expect(page.locator('#title-screen')).not_to_contain_text(re.compile('208|旧版|长篇|短篇|剧情模式'))
                     page.locator('#start-btn').click()
                     page.locator('#identity-list').get_by_role('button',name=route['name'],exact=True).click()
                     page.locator('#confirm-identity').click()
@@ -65,11 +67,12 @@ with ThreadingHTTPServer(('127.0.0.1',0),partial(Handler,directory=str(root))) a
                             page.reload(wait_until='networkidle')
                             page.locator('#load-btn-title').click()
                             assert page.evaluate("JSON.parse(localStorage.getItem('nw_save_v2_auto')).state")==saved
-                            expect(page.locator('#survival-status')).to_contain_text('120 / 208')
+                            expect(page.locator('#survival-status')).to_contain_text('物资：')
+                            expect(page.locator('#status-bar')).not_to_contain_text(re.compile('208|已选择|本章落实|本章核验'))
                     final=page.evaluate("JSON.parse(localStorage.getItem('nw_save_v2_auto')).state")
                     assert final['currentNode']==route['ending'] and final['campaign']['decisions']==208
                     assert len(final['history'])==208
-                    expect(page.locator('#chapter-heading')).to_contain_text('经历 208 次选择')
+                    expect(page.locator('#chapter-heading')).not_to_contain_text('次选择')
                     expect(page.get_by_role('button',name='返回主菜单',exact=True)).to_be_visible()
                     page.locator('#history-btn').click()
                     expect(page.locator('#history-list section')).to_have_count(208)

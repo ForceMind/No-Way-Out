@@ -380,7 +380,7 @@ class Game {
     }
 
     startGame() {
-        this.state = document.getElementById('story-mode').value==='legacy' ? createState(this.state.currentIdentity) : createCampaignState(this.state.currentIdentity);
+        this.state = createCampaignState(this.state.currentIdentity);
         this.updateStatus();
         this.showScreen('game');
         this.playNode(this.state.currentNode);
@@ -485,7 +485,7 @@ class Game {
         heading.append(title);
         if (ending) {
             const summary = document.createElement('p');
-            summary.textContent = `经历 ${this.state.history.length} 次选择 · 生命 ${this.state.health} · 理智 ${this.state.sanity}${this.state.ruleset==='survival-v1' ? ` · 食物 ${this.state.resources.food} · 饮水 ${this.state.resources.water}` : ''}`;
+            summary.textContent = `生命 ${this.state.health} · 理智 ${this.state.sanity}${this.state.ruleset==='survival-v1' ? ` · 食物 ${this.state.resources.food} · 饮水 ${this.state.resources.water}` : ''}`;
             heading.append(summary);
             const last = this.state.history.slice(-3);
             for (const entry of last) {const p=document.createElement('p');p.textContent=`关键经历：${entry.text}`;heading.append(p);}
@@ -496,7 +496,7 @@ class Game {
     updateStatus() {
         const survival=document.getElementById('survival-status');
         survival.hidden=!['survival-v1','campaign-v1'].includes(this.state.ruleset);
-        if(this.state.ruleset==='campaign-v1') survival.textContent=`完整长篇 · 已选择 ${this.state.campaign.decisions} / 208 次 · 物资 ${this.state.resources.kit} · 互助 ${this.state.resources.care} · 本章落实 ${this.state.resources.chapterWork} / 5 · 本章核验 ${this.state.resources.chapterProof} / 3`;
+        if(this.state.ruleset==='campaign-v1') survival.textContent=`物资：${this.state.resources.kit} · 互助：${this.state.resources.care}`;
         if(this.state.ruleset==='survival-v1') survival.textContent=`第 ${this.state.clock.day} 天 · ${['清晨','午后','夜晚'][this.state.clock.period]} · 食物 ${this.state.resources.food} · 饮水 ${this.state.resources.water} · 饥饿 ${this.state.hunger} · 疲劳 ${this.state.fatigue}`;
         this.elements.healthDisplay.textContent = `生命：${this.state.health}`;
         if (this.elements.sanityDisplay) {

@@ -262,7 +262,7 @@ import {describeNode} from '../core/narrative.js';
     function renderPreview() {
         const node=currentData[previewState.currentIdentity][previewState.currentNode];
         document.getElementById('preview-text').textContent=describeNode(node,previewState);
-        document.getElementById('preview-status').textContent=`${previewState.ruleset==='campaign-v1'?`完整长篇从序章建立进度 · 已选择 ${previewState.campaign.decisions} 次 · `:''}${previewState.currentNode} · 生命 ${previewState.health} · 理智 ${previewState.sanity}`;
+        document.getElementById('preview-status').textContent=`${previewState.ruleset==='campaign-v1'?`从序章建立预览进度 · 已选择 ${previewState.campaign.decisions} 次 · `:''}${previewState.currentNode} · 生命 ${previewState.health} · 理智 ${previewState.sanity}`;
         const choices=document.getElementById('preview-choices');choices.replaceChildren();
         node.choices.forEach((choice,index)=>{const button=document.createElement('button');const condition=choice.strenuous && previewState.ruleset==='survival-v1' && previewState.fatigue>=80 ? {allowed:false,reason:'疲劳过高'} : checkCondition(choice.condition,previewState);button.textContent=choice.text+(condition.allowed?'':`（${choice.lockReason??condition.reason}）`);button.disabled=!condition.allowed;button.onclick=()=>{const result=transition(previewState,{nodeKey:previewState.currentNode,choiceIndex:index},currentData);if(result.ok){previewState=result.state;renderPreview();}else showError(new Error(result.reason));};choices.append(button);});
         if(!node.choices.length)choices.textContent='此节点为结局。';

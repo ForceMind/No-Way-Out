@@ -3,6 +3,7 @@ from functools import partial
 import hashlib
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import json
+import re
 import os
 from pathlib import Path
 import shutil
@@ -49,24 +50,19 @@ with sync_playwright() as playwright:
                     assert data=={"identities":12,"starts":True}
                     measurement=page.evaluate("({dcl:performance.getEntriesByType('navigation')[0].domContentLoadedEventEnd,paint:performance.getEntriesByType('paint').map(entry=>({name:entry.name,ms:entry.startTime})),localBytes:performance.getEntriesByType('resource').filter(entry=>new URL(entry.name).origin===location.origin).reduce((sum,entry)=>sum+entry.transferSize,0),resources:performance.getEntriesByType('resource').length})")
                     metrics.append({"path":"project" if prefix else "root",**measurement})
-                    expect(page.locator("#story-mode")).to_have_value("campaign")
+                    expect(page.locator("#story-mode")).to_have_count(0)
+                    expect(page.locator("#title-screen")).not_to_contain_text(re.compile("208|旧版|剧情模式"))
                     page.locator("#start-btn").click()
                     page.locator("#identity-list").get_by_role("button",name="普通市民",exact=True).click()
                     page.locator("#confirm-identity").click()
                     page.locator("#choices-area button").first.click()
                     page.locator("#choices-area button").nth(1).click()
-                    expect(page.locator("#survival-status")).to_contain_text("2 / 208")
+                    expect(page.locator("#survival-status")).to_contain_text("物资：")
+                    assert page.evaluate("JSON.parse(localStorage.getItem('nw_save_v2_auto')).state.campaign.decisions")==2
                     page.reload(wait_until="networkidle")
                     page.locator("#continue-btn").click()
-                    expect(page.locator("#survival-status")).to_contain_text("2 / 208")
-                    page.reload(wait_until="networkidle")
-                    page.locator("#story-mode").select_option("legacy")
-                    page.locator("#start-btn").click()
-                    page.locator("#identity-list").get_by_role("button",name="普通市民",exact=True).click()
-                    page.locator("#confirm-identity").click()
-                    page.locator("#choices-area").get_by_role("button",name="留在家中",exact=True).click()
-                    page.locator("#choices-area").get_by_role("button",name="继续等待",exact=True).click()
-                    expect(page.get_by_role("button",name="返回主菜单",exact=True)).to_be_visible()
+                    expect(page.locator("#survival-status")).to_contain_text("物资：")
+                    assert page.evaluate("JSON.parse(localStorage.getItem('nw_save_v2_auto')).state.campaign.decisions")==2
                     page.goto(base+"/editor.html",wait_until="networkidle")
                     expect(page.locator(".identity-item")).to_have_count(12)
                     page.locator("#node-list").get_by_text("start",exact=True).click()
@@ -74,7 +70,7 @@ with sync_playwright() as playwright:
                     assert page.evaluate("document.documentElement.scrollWidth<=innerWidth")
                     context.tracing.stop()
                     context.close()
-                    print(f"PASS: {prefix or '/'} static hashes, JS MIME, 12 modules, actual ending and editor",flush=True)
+                    print(f"PASS: {prefix or '/'} static hashes, JS MIME, 12 modules, unified game start/resume and editor",flush=True)
                 finally:
                     server.shutdown();thread.join(timeout=5)
         assert not failures,failures

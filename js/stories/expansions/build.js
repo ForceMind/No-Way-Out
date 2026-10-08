@@ -53,7 +53,7 @@ export function buildExpansion(identity,profile) {
   });
   const next=c===5?`${root}_epilogue_0`:`${root}_${c+1}_0`;
   add(`${root}_${c}_handoff`,33+c*33,chapter,`${m.contact}要你为「${m.title}」留下一个明确的交接结果。是否完成任务，决定最后能否以它作为今后的立足之处。`,[
-   {text:`落实「${m.title}」的后续工作并交付核验记录`,next,condition:{resources:{chapterWork:5,chapterProof:3}},effect:{endCampaignChapter:true,setFlags:{[`${root}_done_${c}`]:true}},outcome:`${m.goal}有了可接续的安排；结局中可以选择回到这份工作。`},
+   {text:`落实「${m.title}」的后续工作并交付核验记录`,next,condition:{resources:{chapterWork:5,chapterProof:3}},lockReason:'需要先做好本章的准备并核实消息',effect:{endCampaignChapter:true,setFlags:{[`${root}_done_${c}`]:true}},outcome:`${m.goal}有了可接续的安排；结局中可以选择回到这份工作。`},
    {text:'把未完成的部分交给互助者，不宣称任务完成',next,effect:{endCampaignChapter:true,resources:{care:2},setFlags:{[`${root}_done_${c}`]:false}},outcome:'你没有把互助等同于原定任务成功，仍需在下一章继续寻找出路。'},
    {text:'带回剩余物资，留下尚未完成的记录',next,effect:{endCampaignChapter:true,resources:{kit:2},setFlags:{[`${root}_done_${c}`]:false}},outcome:'你选择保留余力，交接记录明确标出了未竟之事。'}]);
  });
@@ -63,5 +63,5 @@ export function buildExpansion(identity,profile) {
  finales.push({kind:'guard',title:'相互照应',text:profile.endings.guard,condition:{resources:{care:40}}},{kind:'return',title:'带回未竟之事',text:profile.endings.return},{kind:'loss',title:'代价与失散',text:profile.endings.loss,condition:{hasFlag:`${root}_unprotected`},lockReason:'需要先选择未经核实且无人接应的去向'});
  add(`${root}_decision`,207,'最终抉择','你已经走完六章。哪些承诺兑现、记录是否可靠、谁得到照应，都决定哪些生活还可能继续。请选择你最终承担的去向。',finales.map(f=>({text:`选择「${f.title}」`,next:`${root}_ending_${f.kind}`,condition:f.condition,lockReason:f.lockReason,effect:f.kind==='loss'?{health:-25}:{},outcome:f.text})));
  finales.forEach(f=>{nodes[`${root}_ending_${f.kind}`]={chapter:profile.title,campaign:{step:208},ending:{title:`${profile.title} · ${f.title}`,kind:f.kind},text:f.text,choices:[]};});
- return {nodes,entry:{id:`${root}_enter`,text:`进入完整长篇：${profile.title}（208 次决策）`,next:`${root}_start`,effect:{startCampaign:true}}};
+ return {nodes,entry:{id:`${root}_enter`,text:`接下「${profile.title}」的托付`,next:`${root}_start`,effect:{startCampaign:true}}};
 }

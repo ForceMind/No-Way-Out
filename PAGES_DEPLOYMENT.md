@@ -1,6 +1,6 @@
 # GitHub Pages 部署
 
-发布对象为 0.4.0 完整长篇游戏与剧情编辑器。预期地址：
+发布对象为 0.4.1 游戏与剧情编辑器，主页只有统一的开始游戏入口。预期地址：
 
 - 游戏：https://forcemind.github.io/No-Way-Out/
 - 编辑器：https://forcemind.github.io/No-Way-Out/editor.html
@@ -12,7 +12,7 @@
 1. 在仓库 Settings → Pages → Build and deployment，将 Source 设为 **GitHub Actions**。
 2. 发布分支为 `main`，遵守 github-pages 现有发布分支保护。开发分支不直接部署；先将已验证版本正常合入 main。
 3. 推送到 `main` 自动触发工作流；也可在 Actions → Deploy game to GitHub Pages → Run workflow 选择 main 发布。首次设置完成后可对失败运行点击 Re-run all jobs。
-4. 检查 build、deploy 与 verify 均成功，再打开部署输出的 page_url。需要确认主页、完整长篇选择、继续存档及 editor.html；检查 release.json 的 contentVersion 为 0.4.0。
+4. 检查 build、deploy 与 verify 均成功，再打开部署输出的 page_url。需要确认主页、人物选择、继续存档及 editor.html；检查 release.json 的 contentVersion 为 0.4.1。
 
 部署后独立 verify 作业读取实际站点 deployment.json，确认提交号与本次发布一致，并核对 release.json 中每个文件的 SHA-256、长度与模块 MIME；CDN 尚未更新时有限重试。
 
