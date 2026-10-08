@@ -179,3 +179,5 @@ Git 远端读取正常；GitHub API 与预期 Pages 地址被当前云网络代�
 main 首次 Pages 运行 37749570178 的 build/deploy 成功，站点发布 URL 为 https://forcemind.github.io/No-Way-Out/；verify 失败，尚不能宣称线上资源与发布包完全一致。公开作业页仅给出退出码，完整日志需要登录；追加精确失败资源与 HTTP 状态的公开注释，继续定位失败原因。
 
 增加 Pages Source 检查：部署作业仅使用 GitHub 内置 pages:write 身份将构建方式规范为 workflow，保留自定义域名和环境保护规则，避免旧分支构建与新发布互相覆盖。如果 GitHub 拒绝修改设置，则明确报告权限错误，不绕过保护。
+
+实际线上验证：运行 37749981081 的 build、deploy、verify 全部 Success，0.4.0 提交 8c35ac9 与全部 49 个线上发布文件核对通过。后续运行 37750185570 发现 Pages Source 为 legacy，内置令牌修改设置失败。保留管理员设置，改为明确告警并继续已有权限允许的标准发布，关键线上完整性验证仍作为硬性门禁。管理员可将 Source 切为 GitHub Actions 避免旧分支构建覆盖。README、发布说明与部署记录已补充实际地址及验证证据。

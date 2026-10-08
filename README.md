@@ -39,7 +39,7 @@ python3 tests/e2e/release.py
 
 当前 208 项具名单元测试通过；3237 节点、10860 选项、216 结束节点（210 正式、6 归档），无剧情错误和待处理警告。108 种长篇结局全部以实际引擎走完 208 次决策并验证保存恢复；Chromium 逐身份完整点击通关、中途刷新读档、条件叙事回顾及手机布局通过。另保留十二身份旧版代表路线、两个修通分支、三日章节三类结局、编辑器往返和四屏宽检查。覆盖范围见 [tests/README.md](tests/README.md)。
 
-生成的 dist/no-way-out 可直接放到静态站点根目录或项目子目录；dist/no-way-out-0.4.0.zip 为发布包，release.json 包含文件哈希。发布路径已在本地验证；Pages 自动部署工作流已接入，线上结果尚待确认。首次启用及发布步骤见 [PAGES_DEPLOYMENT.md](PAGES_DEPLOYMENT.md)。CI 配置位于 .github/workflows/check.yml，远端结果需实际触发后确认。
+生成的 dist/no-way-out 可直接放到静态站点根目录或项目子目录；dist/no-way-out-0.4.0.zip 为发布包，release.json 包含文件哈希。游戏已发布到 [GitHub Pages](https://forcemind.github.io/No-Way-Out/)，[剧情编辑器](https://forcemind.github.io/No-Way-Out/editor.html) 使用同一站点。远端发布及全部 49 个资源一致性检查通过；Pages 自动部署工作流已接入。构建方式设置及后续发布见 [PAGES_DEPLOYMENT.md](PAGES_DEPLOYMENT.md)。CI 配置位于 .github/workflows/check.yml，远端结果需实际触发后确认。
 
 ## 目录与记录
 
@@ -49,6 +49,6 @@ python3 tests/e2e/release.py
 - [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md)：完整方案与里程碑；[DEVELOPMENT_LOG.md](DEVELOPMENT_LOG.md)：每步修改、验证和提交。
 - [CONTENT_REVIEW.md](CONTENT_REVIEW.md)：原有问题的逐项处理；[ENDING_CATALOG.md](ENDING_CATALOG.md)：结局目录；[RELEASE_NOTES.md](RELEASE_NOTES.md)：版本兼容与交付。
 
-开发分支为 [codex/no-way-out-development](https://github.com/ForceMind/No-Way-Out/tree/codex/no-way-out-development)，每一步更新文档、独立提交并推送。远端 CI 与 Pages 上线状态需另外确认；部署配置见 [PAGES_DEPLOYMENT.md](PAGES_DEPLOYMENT.md)。
+开发分支为 [codex/no-way-out-development](https://github.com/ForceMind/No-Way-Out/tree/codex/no-way-out-development)，每一步更新文档、独立提交并推送。Pages 发布和线上资源检查已通过；其余完整回归 CI 结果单独记录。部署配置见 [PAGES_DEPLOYMENT.md](PAGES_DEPLOYMENT.md)。
 
 Firefox、WebKit、真实手机、玩家平衡试玩、文学润色和史实专家审校仍是后续工作。

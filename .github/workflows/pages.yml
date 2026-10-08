@@ -59,7 +59,9 @@ jobs:
           source_type=$(gh api "repos/${GITHUB_REPOSITORY}/pages" --jq '.build_type')
           printf '::notice title=Pages build source::%s\n' "$source_type"
           if [ "$source_type" != "workflow" ]; then
-            gh api --method PUT "repos/${GITHUB_REPOSITORY}/pages" -f build_type=workflow --silent
+            if ! gh api --method PUT "repos/${GITHUB_REPOSITORY}/pages" -f build_type=workflow --silent; then
+              printf '::warning title=Pages Source setting::Publishing is permitted, but changing Source requires a repository administrator. Set Settings > Pages > Source to GitHub Actions to prevent legacy builds from replacing this release.\n'
+            fi
           fi
       - name: Configure Pages
         uses: actions/configure-pages@v5
