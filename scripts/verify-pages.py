@@ -6,6 +6,7 @@ import json
 import time
 from urllib.parse import quote
 from urllib.request import urlopen
+from urllib.error import HTTPError
 
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('url')
@@ -16,13 +17,16 @@ base=args.url.rstrip('/')
 def fetch(path):
     # Avoid a stale CDN response while a new deployment is propagating.
     url=f'{base}/{quote(path,safe="/")}?deployment={quote(args.commit,safe="")}'
-    with urlopen(url,timeout=25) as response:
-        return response.read(),response.headers.get_content_type()
+    try:
+        with urlopen(url,timeout=25) as response:
+            return response.read(),response.headers.get_content_type()
+    except HTTPError as error:
+        raise RuntimeError(f'{path}: HTTP {error.code}') from error
 
 def verify():
     identity=json.loads(fetch('deployment.json')[0])
     if identity.get('commit')!=args.commit:
-        raise ValueError('Pages is still serving a different commit')
+        raise ValueError(f"Pages commit {identity.get('commit')} differs from {args.commit}")
     manifest=json.loads(fetch('release.json')[0])
     if not isinstance(manifest.get('files'),dict) or not manifest['files']:
         raise ValueError('Release manifest is missing files')
@@ -48,6 +52,9 @@ for attempt in range(12):
         break
     except Exception as error:
         if attempt==11:
+            # A public Actions annotation preserves the concrete cause even when logs require login.
+            message=str(error).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
+            print(f'::error title=Published site verification::{message}',flush=True)
             raise
         print(f'Waiting for Pages propagation ({attempt+1}/12): {error}',flush=True)
         time.sleep(5)
