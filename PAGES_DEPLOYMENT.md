@@ -37,3 +37,5 @@
 GitHub Pages 运行 [37749981081](https://github.com/ForceMind/No-Way-Out/actions/runs/37749981081) 已全部成功：发布 0.4.0，并由远端运行器核对发布提交和 49 个实际站点文件的 SHA-256、长度及模块 MIME。游戏地址为 https://forcemind.github.io/No-Way-Out/ 。
 
 Pages 当前 Source 是 legacy。内置 GITHUB_TOKEN 可以发布，但修改 Source 的请求未成功；保留现有设置，不移除任何环境保护。建议仓库管理员将 Settings → Pages → Source 设为 GitHub Actions，避免旧分支构建与新工作流发布互相覆盖。配置写入失败会明确告警，不会省略关键的 deploy 与 verify。
+
+最新排障确认：main 上的旧 Pages 分支构建会在自定义发布后替换站点，造成 deployment.json 消失（HTTP 404）。现有环境保护继续保留；deploy 作业仅增加 actions:read 查询同一提交的内置 Pages 构建状态，有限等待其完成后再正式发布，保证不会被这次旧构建随后覆盖。等待超时与线上核验失败均使发布运行失败。建议管理员仍将 Source 改为 GitHub Actions，消除重复构建。
