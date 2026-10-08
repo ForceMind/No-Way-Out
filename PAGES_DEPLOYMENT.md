@@ -10,9 +10,11 @@
 ## 配置与发布
 
 1. 在仓库 Settings → Pages → Build and deployment，将 Source 设为 **GitHub Actions**。
-2. 当前发布分支为 `codex/no-way-out-development`。如 `github-pages` 环境限制部署分支，在 Settings → Environments → github-pages 中允许此分支；原有审批规则继续保留。
-3. 推送到 `codex/no-way-out-development` 会自动触发工作流。在 Actions 中找到 **Deploy game to GitHub Pages**，首次设置完成后可对失败运行点击 **Re-run all jobs**。工作流合入默认分支 main 后，才可使用 Run workflow 选择开发分支手动运行。
-4. 检查 build 与 deploy 均成功，再打开部署输出的 page_url。需要确认主页、完整长篇选择、继续存档及 editor.html；检查 release.json 的 contentVersion 为 0.4.0。
+2. 发布分支为 `main`，遵守 github-pages 现有发布分支保护。开发分支不直接部署；先将已验证版本正常合入 main。
+3. 推送到 `main` 自动触发工作流；也可在 Actions → Deploy game to GitHub Pages → Run workflow 选择 main 发布。首次设置完成后可对失败运行点击 Re-run all jobs。
+4. 检查 build、deploy 与 verify 均成功，再打开部署输出的 page_url。需要确认主页、完整长篇选择、继续存档及 editor.html；检查 release.json 的 contentVersion 为 0.4.0。
+
+部署后独立 verify 作业读取实际站点 deployment.json，确认提交号与本次发布一致，并核对 release.json 中每个文件的 SHA-256、长度与模块 MIME；CDN 尚未更新时有限重试。
 
 部署工作流 `.github/workflows/pages.yml` 使用 Node 24 校验故事并执行实际单元测试，检查结局目录未漂移，再运行仓库打包脚本。仅上传 `dist/no-way-out`，不上传源码仓库、Git 元数据、测试产物和 ZIP。deploy 作业拥有 `pages: write` 和 `id-token: write`；其他作业仅有源码只读权限。并发部署排队，避免中断已有部署。
 
@@ -22,10 +24,10 @@
 
 当前环境可以通过既有 HTTPS Git 代理读写本仓库，但 `api.github.com` 和 `forcemind.github.io` 的访问被环境网络策略拒绝。无法从当前机器读取或修改 Pages 设置、查询 Actions 结果、验证线上站点。所需域名已保存到云环境网络草稿，保留原有 github.com 放行项；草稿保存并不等于已经应用到运行环境。
 
-部署工作流与本地静态发布检查已准备好。远端触发、Pages 配置与上线结果仍需通过 GitHub 设置/Actions 或网络配置生效后的实际检查确认。
+初次开发分支发布已实际触发：build 成功，deploy 被 github-pages 的发布分支保护拒绝。通过允许的 github.com 网页读到了运行状态；设置页需要管理权限，当前无法读取。已确认 main 是本次版本的祖先，改为通过正常快进 main 发布，不修改或绕过环境保护。最终上线以 main 发布的 deploy 与远端 verify 结果为准。
 
 ## 后续更新与回退
 
-- 后续向当前发布分支推送会触发部署。主分支当前仍为旧版本；在合入完整版本前不要手动从旧 main 发布，否则可能覆盖新版站点。
+- 后续将开发成果正常合入 main 会自动部署；开发分支推送仅运行检查。
 - 如需恢复旧版本，在 Actions 中重新运行已知成功的发布运行；不要强制改写分支历史。
 - 从本地服务器切换到 Pages 是更换站点来源，浏览器 localStorage 存档不会自动迁移；访问 editor.html 与游戏使用同一 Pages 来源。

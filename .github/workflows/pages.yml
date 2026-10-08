@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - codex/no-way-out-development
   workflow_dispatch:
 
 permissions:
@@ -33,7 +32,9 @@ jobs:
           node scripts/content-catalog.mjs
           git diff --exit-code -- ENDING_CATALOG.md
       - name: Build static game
-        run: python scripts/build-release.py
+        run: |
+          python scripts/build-release.py
+          python -c 'import json, os; from pathlib import Path; Path("dist/no-way-out/deployment.json").write_text(json.dumps({"commit": os.environ["GITHUB_SHA"]}) + "\n")'
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -42,6 +43,8 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
     permissions:
       pages: write
       id-token: write
@@ -54,3 +57,14 @@ jobs:
       - name: Deploy game
         id: deployment
         uses: actions/deploy-pages@v4
+  verify:
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify the published commit and every static file
+        run: python scripts/verify-pages.py '${{ needs.deploy.outputs.page_url }}' --commit '${{ github.sha }}'
