@@ -165,3 +165,11 @@
 发布包 dist/no-way-out-0.4.0.zip 含 48 个受校验文件；根路径及项目子路径下的全部文件哈希、JS MIME、默认长篇、继续存档、旧版结局和编辑器验证通过。已更新 README、方案、内容审阅、结局目录、测试说明、发布说明与 CI。尚未部署静态游戏站点，远端 CI 结果尚未确认；共享场景结构的文学重复感、玩家平衡、其他浏览器/真实手机和专业史实审校仍需继续。
 
 本阶段与先前阶段均提交并推送至 codex/no-way-out-development，另更新本地 Git bundle 作为离线备份。
+
+## E5 · GitHub Pages 发布配置 · 2026-10-08
+
+用户授权部署 GitHub Pages。新增 pages.yml：当前开发分支与 main 推送触发，支持手动发布，执行故事/真实单元检查与结局目录一致性检查，打包并上传 dist/no-way-out，由 GitHub 内置 Pages 身份部署。新增 PAGES_DEPLOYMENT.md 记录首次设置、允许的发布分支、预期地址、回退与存档来源差异。
+
+Git 远端读取正常；GitHub API 与预期 Pages 地址被当前云网络代理拒绝，故不能确认 Pages 当前设置与远端运行结果。已使用 cloud-environment-onboarding:setup 的支持流程保存 github.com、api.github.com、forcemind.github.io 放行草稿，保留原有脚本、仓库和凭据设置；待用户在环境设置保存并发布后重试。配置推送不作为已经上线的证据。
+
+验证：208 项具名单元用例全部执行且通过，无跳过；剧情校验无错误和待处理警告；结局目录与已提交数据一致；Pages 工作流触发分支、作业依赖、最小权限与上传目录结构检查通过。部署文档随发布目录一起打包，根路径与 /no-way-out 项目子路径的实际游戏和编辑器验证通过。
